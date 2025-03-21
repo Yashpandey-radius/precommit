@@ -154,6 +154,14 @@ fi
 download_tool "PHP-CS-Fixer" "https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v3.0.0/php-cs-fixer.phar" "php-cs-fixer.phar" "https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v3.0.0/php-cs-fixer.exe"
 download_tool "Local PHP Security Checker" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.phar" "local-php-security-checker.phar" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.exe"
 
+# Download php-cbf if missing
+if [ ! -f ./php_tools/phpcbf.phar ]; then
+    echo "php-cbf.phar missing, downloading..."
+    curl -L https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcbf.phar -o ./php_tools/phpcbf.phar
+    chmod +x ./php_tools/phpcbf.phar
+    echo "php-cbf.phar downloaded and made executable."
+fi
+
 # Verify the downloaded tools
 for tool in phpstan phpunit phpcs psalm php-cs-fixer local-php-security-checker behat php-cbf rips; do
     if [ ! -f ./$tool.phar ] && [ ! -f ./$tool.exe ]; then
@@ -174,6 +182,7 @@ if ! command -v pre-commit &> /dev/null; then
         brew install pre-commit
     elif [[ "$PLATFORM" == "MINGW64_NT"* ]]; then
         # For Windows (MSYS/MinGW)
+        # Assuming pre-commit can be installed through pip or other methods in MSYS/MinGW
         echo "Attempting to install pre-commit using pip..."
         if command -v pip &> /dev/null; then
             pip install pre-commit
