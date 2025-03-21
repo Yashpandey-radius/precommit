@@ -1,0 +1,64 @@
+# .pre-commit-config.yaml
+
+repos:
+  # PHPStan (Static Analysis)
+  - repo: local
+    hooks:
+      - id: phpstan
+        name: PHPStan (Static Analysis)
+        entry: php ./php_tools/phpstan.phar analyse --level=5
+        language: system
+        types: [file]
+        args: ["--memory-limit=2G"]  # Removed --autoload-file if no autoloader is used
+
+  # PHPUnit (Unit Testing)
+  - repo: local
+    hooks:
+      - id: phpunit
+        name: Run PHPUnit
+        entry: php ./php_tools/phpunit.phar --filter TestClassName
+        language: system
+        types: [file]
+        args: ["--filter", "TestClassName"]
+
+  # PHP_CodeSniffer (Coding Standards)
+  - repo: local
+    hooks:
+      - id: phpcs
+        name: PHP CodeSniffer (PSR-12 Standard)
+        entry: php ./php_tools/phpcs.phar --standard=PSR12
+        language: system
+        types: [file]
+        args: ["--ignore=vendor/*"]
+
+  # PHP-CS-Fixer
+  - repo: local
+    hooks:
+      - id: php-cs-fixer
+        name: PHP-CS-Fixer
+        entry: bash -c "export PHP_CS_FIXER_IGNORE_ENV=1 && php ./php_tools/php-cs-fixer.phar fix"
+        language: system
+        types: [file]
+        args: ["--rules=@PSR12"]
+
+  # Psalm (Static Analysis)
+  - repo: local
+    hooks:
+      - id: psalm
+        name: Psalm (Static Analysis)
+        entry: php ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true
+        language: system
+        types: [file]
+        args: ["--errorLevel=medium"]
+
+  # Local PHP Security Checker
+  - repo: local
+    hooks:
+      - id: local-php-security-checker
+        name: Local PHP Security Checker
+        entry: php ./php_tools/local-php-security-checker.phar
+        language: system
+        types: [file]
+
+default_stages:
+  - pre-commit
