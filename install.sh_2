@@ -31,7 +31,6 @@ download_tool() {
                 echo "Downloaded file for $tool_name is empty or corrupted. Retrying... (Attempt $attempt/$max_retries)"
                 ((attempt++))
                 sleep $wait_time  # Exponential backoff: wait time increases with each attempt
-                wait_time=$((wait_time * 2))  # Double the wait time for the next attempt
                 continue
             fi
 
@@ -174,7 +173,7 @@ done
 echo "Checking pre-commit installation..."
 if ! command -v pre-commit &> /dev/null; then
     echo "pre-commit not found. Installing pre-commit..."
-    sudo apt-get install -y pre-commit
+    sudo apt-get update && sudo apt-get install -y pre-commit
 else
     echo "pre-commit is already installed."
 fi
