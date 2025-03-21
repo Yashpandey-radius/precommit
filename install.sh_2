@@ -167,11 +167,22 @@ echo "Checking pre-commit installation..."
 if ! command -v pre-commit &> /dev/null; then
     echo "pre-commit not found. Installing pre-commit..."
     if [[ "$PLATFORM" == "Linux" ]]; then
-        sudo apt-get install pre-commit
+        # For Linux (Debian/Ubuntu-based systems)
+        sudo apt-get install -y pre-commit
     elif [[ "$PLATFORM" == "Darwin" ]]; then
+        # For macOS (using Homebrew)
         brew install pre-commit
     elif [[ "$PLATFORM" == "MINGW64_NT"* ]]; then
-        handle_error "Pre-commit installation on Windows is not automated. Please install pre-commit manually."
+        # For Windows (MSYS/MinGW)
+        # Assuming pre-commit can be installed through pip or other methods in MSYS/MinGW
+        echo "Attempting to install pre-commit using pip..."
+        if command -v pip &> /dev/null; then
+            pip install pre-commit
+        else
+            handle_error "pip is not installed. Please install pip to continue with pre-commit installation on Windows."
+        fi
+    else
+        handle_error "Unsupported platform for pre-commit installation: $PLATFORM"
     fi
 else
     echo "pre-commit is already installed."
