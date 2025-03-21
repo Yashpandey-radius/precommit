@@ -5,17 +5,15 @@ Add install.sh in the project root
 Add .pre-commit-config.yaml in the project root
 
 
-
-
 git commit -m "T"
-PHPStan (Static Analysis)....................................................................Passed
-PHPStan Alternative (PHPStan's alternative - **Psalm**)......................................Failed
+PHPStan (Static Analysis)................................................................Passed
+PHPStan Alternative (PHPStan's alternative - **Psalm**)..................................Failed
 - hook id: phpstan-alt
 - exit code: 1
 
 Could not resolve path to config psalm.xml
 
-Run PHPUnit..................................................................................Failed
+Run PHPUnit..............................................................................Failed
 - hook id: phpunit
 - exit code: 1
 
@@ -28,7 +26,7 @@ repos:
         entry: php ./php_tools/phpstan.phar analyse --level=5
         language: system
         types: [file]
-        args: ["--memory-limit=4G"]  # Removed --autoload-file as you aren't using Composer
+        args: ["--memory-limit=4G"]
 
       - id: phpstan-alt
         name: PHPStan Alternative (PHPStan's alternative - **Psalm**)
@@ -42,7 +40,7 @@ repos:
     hooks:
       - id: phpunit
         name: Run PHPUnit
-        entry: php ./php_tools/phpunit.phar --filter TestClassName  # Changed to use the downloaded phpunit.phar
+        entry: php ./php_tools/phpunit.phar --filter TestClassName
         language: system
         types: [file]
         args: ["--filter", "TestClassName"]
@@ -52,7 +50,7 @@ repos:
         entry: php ./php_tools/behat.phar
         language: system
         types: [file]
-        args: ["--tags", "not @wip", "."]
+        args: ["--tags", "not @wip", "."]  # Ensure this is correct for your Behat configuration
 
   # PHP_CodeSniffer (Coding Standards)
   - repo: local
@@ -65,7 +63,7 @@ repos:
         args: ["--ignore=vendor/*"]
 
       - id: phpcs-alt
-        name: PHP CodeSniffer Alternative (**PHP_CodeSniffer with custom standard**)
+        name: PHP CodeSniffer Alternative (PHP_CodeSniffer with custom standard)
         entry: php ./php_tools/phpcs.phar --standard=PSR12
         language: system
         types: [file]
@@ -124,7 +122,7 @@ default_stages:
   - pre-commit
 Class InternalIterator declared in /home/ubuntu/torrentpower_version_update/.pre-commit-config.yaml does not extend PHPUnit\Framework\TestCase
 
-Run PHPUnit Alternative (**Behat** for Behavioral Testing)...................................Failed
+Run PHPUnit Alternative (**Behat** for Behavioral Testing)...............................Failed
 - hook id: phpunit-alt
 - exit code: 1
 
@@ -134,18 +132,17 @@ Run PHPUnit Alternative (**Behat** for Behavioral Testing)......................
 
 behat [-s|--suite SUITE] [-f|--format FORMAT] [-o|--out OUT] [--format-settings FORMAT-SETTINGS] [--init] [--lang LANG] [--name NAME] [--tags TAGS] [--role ROLE] [--story-syntax] [-d|--definitions DEFINITIONS] [--snippets-for [SNIPPETS-FOR]] [--snippets-type SNIPPETS-TYPE] [--append-snippets] [--no-snippets] [--strict] [--order ORDER] [--rerun] [--stop-on-failure] [--dry-run] [--] [<paths>]
 
-PHP CodeSniffer (PSR-12 Standard)............................................................Passed
-PHP CodeSniffer Alternative (**PHP_CodeSniffer with custom standard**).......................Passed
-PHP-CS-Fixer.................................................................................Passed
-PHP-CS-Fixer Alternative (**PHPCBF** - Code Beautifier and Fixer)............................Passed
-Psalm (Static Analysis)......................................................................Failed
+PHP CodeSniffer (PSR-12 Standard)........................................................Passed
+PHP CodeSniffer Alternative (PHP_CodeSniffer with custom standard).......................Passed
+PHP-CS-Fixer.............................................................................Passed
+PHP-CS-Fixer Alternative (**PHPCBF** - Code Beautifier and Fixer)........................Passed
+Psalm (Static Analysis)..................................................................Failed
 - hook id: psalm
 - exit code: 1
 
 Could not resolve path to config psalm.xml
 
-Psalm Alternative (Static Analysis - **PHPStan**)............................................Passed
-Local PHP Security Checker...................................................................Passed
-Local PHP Security Checker Alternative (**RIPS Code Analysis**)..............................Passed
+Psalm Alternative (Static Analysis - **PHPStan**)........................................Passed
+Local PHP Security Checker...............................................................Passed
+Local PHP Security Checker Alternative (**RIPS Code Analysis**)..........................Passed
 root@ip-172-31-3-206:/home/ubuntu/torrentpower_version_update# 
-
