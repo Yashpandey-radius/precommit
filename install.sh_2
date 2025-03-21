@@ -130,6 +130,7 @@ if ! php -m | grep -q 'curl'; then
 fi
 
 # Create a directory for PHP tools
+echo "Creating php_tools directory..."
 mkdir -p ./php_tools
 cd ./php_tools
 
@@ -169,13 +170,39 @@ for tool in phpstan phpunit phpcs psalm php-cs-fixer local-php-security-checker 
     echo "$tool.phar or $tool.exe is ready."
 done
 
-# Install pre-commit if not already installed
-echo "Checking pre-commit installation..."
-if ! command -v pre-commit &> /dev/null; then
-    echo "pre-commit not found. Installing pre-commit..."
-    sudo apt-get update && sudo apt-get install -y pre-commit
-else
-    echo "pre-commit is already installed."
+# Function to install pre-commit and check its version
+install_pre_commit() {
+    local expected_version="2.20.0"  # Define the expected version
+    local installed_version=$(pre-commit --version 2>/dev/null | awk '{print $3}')
+
+    if [ -z "$installed_version" ]; then
+        echo "pre-commit not found. Installing pre-commit..."
+        sudo apt-get update && sudo apt-get install -y pre-commit
+        return 1
+    elif [[ "$installed_version" != "$expected_version" ]]; then
+        echo "Installed pre-commit version ($installed_version) doesn't match expected version ($expected_version). Reinstalling..."
+        sudo apt-get remove -y pre-commit
+        sudo apt-get install -y pre-commit
+        return 1
+    else
+        echo "pre-commit is installed with the expected version ($installed_version)."
+        return 0
+    fi
+}
+
+# Install and verify pre-commit
+attempts=0
+max_attempts=3
+while [ $attempts -lt $max_attempts ]; do
+    if install_pre_commit; then
+        break
+    fi
+    ((attempts++))
+    echo "Retrying pre-commit installation... Attempt $attempts of $max_attempts"
+done
+
+if [ $attempts -eq $max_attempts ]; then
+    handle_error "Failed to install or verify pre-commit after $max_attempts attempts."
 fi
 
 echo "Installation completed successfully!"
