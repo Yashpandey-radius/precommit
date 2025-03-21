@@ -178,5 +178,9 @@ if ! command -v pre-commit &> /dev/null; then
     pipx install pre-commit
 fi
 
+# Run "pre-commit install" to generate hooks
+echo "[INFO] Running 'pre-commit install' to set up git hooks..."
+pre-commit install
+
 # Final message
 echo "[INFO] Installation completed successfully!"
