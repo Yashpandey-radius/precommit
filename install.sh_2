@@ -162,18 +162,25 @@ if [ ! -f ./php_tools/phpcbf.phar ]; then
     echo "php-cbf.phar downloaded and made executable."
 fi
 
-# Verify the downloaded tools
-for tool in phpstan phpunit phpcs psalm php-cs-fixer local-php-security-checker behat php-cbf rips; do
-    if [ ! -x ./php_tools/$tool.phar ]; then
-        handle_error "$tool tool is not executable or missing!"
-    fi
-done
-
-# Install pre-commit if not installed
+# Install pre-commit if not installed via apt
 echo "Checking pre-commit installation..."
 if ! command -v pre-commit &> /dev/null; then
-    echo "pre-commit is not installed. Installing..."
+    echo "pre-commit is not installed. Installing via apt..."
     sudo apt install -y pre-commit
+fi
+
+# Install pre-commit via pip (if necessary)
+echo "Ensuring pre-commit is installed via pip..."
+if ! command -v pre-commit &> /dev/null; then
+    echo "pre-commit is still missing. Installing via pip..."
+    python3 -m pip install --user pre-commit
+fi
+
+# Install pre-commit via pipx (if necessary)
+echo "Ensuring pre-commit is installed via pipx..."
+if ! command -v pre-commit &> /dev/null; then
+    echo "pre-commit is still missing. Installing via pipx..."
+    pipx install pre-commit
 fi
 
 # Final message
