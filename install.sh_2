@@ -1,0 +1,147 @@
+#!/bin/bash
+
+# Function to handle errors and exit
+handle_error() {
+    echo "$1"
+    exit 1
+}
+
+# Function to download a PHAR file only if it doesn't already exist
+download_tool() {
+    local tool_name=$1
+    local tool_url=$2
+    local destination=$3
+    local max_retries=3
+    local attempt=1
+
+    # Check if the tool already exists and is executable
+    if [ -f "$destination" ] && [ -x "$destination" ]; then
+        echo "$tool_name is already downloaded and executable."
+        return
+    fi
+
+    echo "Downloading $tool_name..."
+    while [ $attempt -le $max_retries ]; do
+        curl -L $tool_url -o $destination
+        if [ $? -eq 0 ]; then
+            # Check the file size after downloading (simple check, could be improved)
+            if [ ! -s "$destination" ]; then
+                echo "Downloaded file for $tool_name is empty or corrupted. Retrying..."
+                ((attempt++))
+                continue
+            fi
+
+            # Make the downloaded file executable
+            chmod +x $destination
+            echo "$tool_name downloaded and made executable."
+            return
+        fi
+        echo "Failed to download $tool_name. Retry attempt $attempt/$max_retries..."
+        ((attempt++))
+    done
+
+    handle_error "Failed to download $tool_name after $max_retries attempts."
+}
+
+# Detect platform and set path
+PLATFORM=$(uname -s)
+
+if [[ "$PLATFORM" == "Linux" || "$PLATFORM" == "Darwin" ]]; then
+    echo "Detected platform: $PLATFORM (Linux or macOS)"
+elif [[ "$PLATFORM" == "MINGW64_NT"* ]]; then
+    echo "Detected platform: Windows (MSYS/MinGW)"
+else
+    handle_error "Unsupported platform: $PLATFORM"
+fi
+
+# Ensure curl is installed
+if ! command -v curl &> /dev/null; then
+    handle_error "curl could not be found. Please install curl."
+fi
+
+# Ensure PHP is installed
+echo "Checking PHP installation..."
+if ! command -v php &> /dev/null; then
+    handle_error "PHP is not installed. Please install PHP first."
+else
+    PHP_VERSION=$(php -v | head -n 1 | awk '{print $2}')
+    PHP_MAJOR_VERSION=$(echo "$PHP_VERSION" | cut -d'.' -f1)
+    PHP_MINOR_VERSION=$(echo "$PHP_VERSION" | cut -d'.' -f2)
+    PHP_PATCH_VERSION=$(echo "$PHP_VERSION" | cut -d'.' -f3)
+    echo "PHP is already installed. Version: $PHP_VERSION"
+fi
+
+# Check PHP version compatibility with PHP-CS-Fixer (supports PHP >= 7)
+if [ "$PHP_MAJOR_VERSION" -ge 7 ]; then
+    echo "PHP version >= 7 detected. PHP-CS-Fixer will be installed."
+    export PHP_CS_FIXER_IGNORE_ENV=1
+else
+    handle_error "PHP version lower than 7 detected. Please update PHP to at least version 7."
+fi
+
+# Check if PHP curl extension is installed
+if ! php -m | grep -q 'curl'; then
+    echo "Required PHP extension 'curl' is not installed."
+    echo "Please install the 'curl' PHP extension. If you're using Windows, follow the steps:"
+    echo "1. Open your php.ini file (typically located in your PHP installation folder)."
+    echo "2. Uncomment the line that says 'extension=curl' (remove the semicolon at the beginning)."
+    echo "3. Restart your web server or PHP process."
+    handle_error "PHP curl extension is required."
+fi
+
+# Create a directory for PHP tools
+mkdir -p ./php_tools
+cd ./php_tools
+
+# Download tools if not already installed
+download_tool "PHPStan" "https://github.com/phpstan/phpstan/releases/download/1.0.0/phpstan.phar" "phpstan.phar"
+download_tool "PHP_CodeSniffer" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcs.phar" "phpcs.phar"
+download_tool "Psalm" "https://github.com/vimeo/psalm/releases/download/v4.15.0/psalm.phar" "psalm.phar"
+download_tool "PHPUnit" "https://phar.phpunit.de/phpunit.phar" "phpunit.phar"
+
+# Handling PHP-CS-Fixer for PHP >= 8.1 compatibility
+if [ "$PHP_MAJOR_VERSION" -ge 8 ]; then
+    echo "PHP version >= 8 detected. Bypassing PHP-CS-Fixer version check."
+    export PHP_CS_FIXER_IGNORE_ENV=1
+fi
+
+download_tool "PHP-CS-Fixer" "https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v3.0.0/php-cs-fixer.phar" "php-cs-fixer.phar"
+download_tool "Local PHP Security Checker" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.phar" "local-php-security-checker.phar"
+
+# Verify the downloaded tools
+for tool in phpstan phpunit phpcs psalm php-cs-fixer local-php-security-checker; do
+    if [ ! -f ./$tool.phar ]; then
+        handle_error "$tool.phar is missing!"
+    fi
+    echo "$tool.phar is ready."
+done
+
+# Install pre-commit if not already installed
+echo "Checking pre-commit installation..."
+if ! command -v pre-commit &> /dev/null; then
+    echo "pre-commit is not installed. Installing pre-commit..."
+    if [[ "$PLATFORM" == "Linux" || "$PLATFORM" == "Darwin" ]]; then
+        pip install pre-commit
+    elif [[ "$PLATFORM" == "MINGW64_NT"* ]]; then
+        python -m pip install pre-commit
+    fi
+else
+    echo "pre-commit is already installed."
+fi
+
+# Install pre-commit hooks from .pre-commit-config.yaml
+echo "Installing pre-commit hooks..."
+pre-commit install
+
+# Test the tools
+for tool in phpstan phpunit phpcs psalm php-cs-fixer local-php-security-checker; do
+    echo "Testing $tool..."
+    php ./$tool.phar --version
+done
+
+# Fix PHPStan issue regarding memory consumption
+echo "Increasing PHPStan memory limit..."
+export MEMORY_LIMIT=512M
+php ./phpstan.phar analyse --memory-limit=$MEMORY_LIMIT
+
+echo "✅ All PHP tools installed and tested successfully!"
