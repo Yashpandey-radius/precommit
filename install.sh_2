@@ -59,10 +59,27 @@ if ! command -v curl &> /dev/null; then
     handle_error "curl could not be found. Please install curl."
 fi
 
-# Ensure PHP is installed
+# Install PHP if not installed
 echo "Checking PHP installation..."
 if ! command -v php &> /dev/null; then
-    handle_error "PHP is not installed. Please install PHP first."
+    echo "PHP is not installed. Installing PHP..."
+    if [[ "$PLATFORM" == "Linux" ]]; then
+        # For Linux (Ubuntu/Debian)
+        if [ -f /etc/debian_version ]; then
+            sudo apt update
+            sudo apt install -y php php-cli php-curl php-mbstring php-xml php-zip
+        fi
+    elif [[ "$PLATFORM" == "Darwin" ]]; then
+        # For macOS (using Homebrew)
+        if ! command -v brew &> /dev/null; then
+            handle_error "Homebrew is not installed. Please install Homebrew first."
+        fi
+        brew install php
+    elif [[ "$PLATFORM" == "MINGW64_NT"* ]]; then
+        # For Windows (using MSYS/MinGW)
+        echo "Please install PHP manually from https://windows.php.net/download/"
+        handle_error "PHP installation on Windows is not automated. Please install PHP manually."
+    fi
 else
     PHP_VERSION=$(php -v | head -n 1 | awk '{print $2}')
     PHP_MAJOR_VERSION=$(echo "$PHP_VERSION" | cut -d'.' -f1)
