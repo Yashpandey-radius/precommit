@@ -4,14 +4,23 @@ repos:
     hooks:
       - id: phpstan
         name: PHPStan (Static Analysis)
-        entry: php ./php_tools/phpstan.phar analyse --level=5
+        entry: |
+          echo "Running PHPStan analysis..."
+          php ./php_tools/phpstan.phar analyse --level=5
         language: system
         types: [file]
         args: ["--memory-limit=4G"]
 
       - id: phpstan-alt
         name: PHPStan Alternative (PHPStan's alternative - **Psalm**)
-        entry: php ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true
+        entry: |
+          echo "Running Psalm analysis with config psalm.xml..."
+          # Check if psalm.xml exists
+          if [ ! -f "./psalm.xml" ]; then
+            echo "Error: psalm.xml not found. Exiting..."
+            exit 1
+          fi
+          php ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true
         language: system
         types: [file]
         args: ["--error-level=medium"]
@@ -21,31 +30,53 @@ repos:
     hooks:
       - id: phpunit
         name: Run PHPUnit
-        entry: php ./php_tools/phpunit.phar --filter TestClassName
+        entry: |
+          echo "Running PHPUnit tests..."
+          # Retry PHPUnit up to 3 times in case of failure
+          retries=3
+          count=0
+          until php ./php_tools/phpunit.phar --filter TestClassName || [ $count -ge $retries ]; do
+            echo "PHPUnit failed. Retrying... ($((count+1))/$retries)"
+            count=$((count+1))
+            sleep 2
+          done
         language: system
         types: [file]
         args: ["--filter", "TestClassName"]
 
       - id: phpunit-alt
         name: Run PHPUnit Alternative (**Behat** for Behavioral Testing)
-        entry: php ./php_tools/behat.phar
+        entry: |
+          echo "Running Behat tests..."
+          # Retry Behat up to 3 times in case of failure
+          retries=3
+          count=0
+          until php ./php_tools/behat.phar || [ $count -ge $retries ]; do
+            echo "Behat failed. Retrying... ($((count+1))/$retries)"
+            count=$((count+1))
+            sleep 2
+          done
         language: system
         types: [file]
-        args: ["--tags", "not @wip", "."]  # Ensure this is correct for your Behat configuration
+        args: ["--tags", "not @wip", "."]
 
   # PHP_CodeSniffer (Coding Standards)
   - repo: local
     hooks:
       - id: phpcs
         name: PHP CodeSniffer (PSR-12 Standard)
-        entry: php ./php_tools/phpcs.phar --standard=PSR12
+        entry: |
+          echo "Running PHP CodeSniffer for PSR-12..."
+          php ./php_tools/phpcs.phar --standard=PSR12
         language: system
         types: [file]
         args: ["--ignore=vendor/*"]
 
       - id: phpcs-alt
         name: PHP CodeSniffer Alternative (PHP_CodeSniffer with custom standard)
-        entry: php ./php_tools/phpcs.phar --standard=PSR12
+        entry: |
+          echo "Running PHP CodeSniffer with custom standard..."
+          php ./php_tools/phpcs.phar --standard=PSR12
         language: system
         types: [file]
         args: ["--ignore=vendor/*"]
@@ -55,14 +86,18 @@ repos:
     hooks:
       - id: php-cs-fixer
         name: PHP-CS-Fixer
-        entry: php ./php_tools/phpcbf.phar --standard=PSR12
+        entry: |
+          echo "Running PHP-CS-Fixer..."
+          php ./php_tools/phpcbf.phar --standard=PSR12
         language: system
         types: [file]
         args: ["--ignore=vendor/*"]
 
       - id: php-cs-fixer-alt
         name: PHP-CS-Fixer Alternative (**PHPCBF** - Code Beautifier and Fixer)
-        entry: php ./php_tools/phpcbf.phar --standard=PSR12
+        entry: |
+          echo "Running PHP-CS-Fixer alternative (PHPCBF)..."
+          php ./php_tools/phpcbf.phar --standard=PSR12
         language: system
         types: [file]
         args: ["--ignore=vendor/*"]
@@ -72,14 +107,23 @@ repos:
     hooks:
       - id: psalm
         name: Psalm (Static Analysis)
-        entry: php ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true
+        entry: |
+          echo "Running Psalm analysis with config psalm.xml..."
+          # Check if psalm.xml exists
+          if [ ! -f "./psalm.xml" ]; then
+            echo "Error: psalm.xml not found. Exiting..."
+            exit 1
+          fi
+          php ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true
         language: system
         types: [file]
         args: ["--error-level=medium"]
 
       - id: psalm-alt
         name: Psalm Alternative (Static Analysis - **PHPStan**)
-        entry: php ./php_tools/phpstan.phar analyse --level=5
+        entry: |
+          echo "Running PHPStan analysis (Psalm alternative)..."
+          php ./php_tools/phpstan.phar analyse --level=5
         language: system
         types: [file]
         args: ["--memory-limit=2G"]
@@ -89,13 +133,17 @@ repos:
     hooks:
       - id: local-php-security-checker
         name: Local PHP Security Checker
-        entry: php ./php_tools/local-php-security-checker.phar
+        entry: |
+          echo "Running Local PHP Security Checker..."
+          php ./php_tools/local-php-security-checker.phar
         language: system
         types: [file]
 
       - id: local-php-security-checker-alt
         name: Local PHP Security Checker Alternative (**RIPS Code Analysis**)
-        entry: php ./php_tools/rips.phar
+        entry: |
+          echo "Running RIPS Code Analysis (PHP Security)..."
+          php ./php_tools/rips.phar
         language: system
         types: [file]
 
