@@ -116,6 +116,11 @@ download_tool "PHP_CodeSniffer" "https://github.com/squizlabs/PHP_CodeSniffer/re
 download_tool "Psalm" "https://github.com/vimeo/psalm/releases/download/v4.15.0/psalm.phar" "psalm.phar"
 download_tool "PHPUnit" "https://phar.phpunit.de/phpunit.phar" "phpunit.phar"
 
+# Download alternative tools if not already installed
+download_tool "Behat" "https://github.com/Behat/Behat/releases/download/v3.10.0/behat.phar" "behat.phar"
+download_tool "PHP Code Beautifier and Fixer (phpcbf)" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcbf.phar" "phpcbf.phar"
+download_tool "RIPS Code Analysis" "https://github.com/ripstech/rips/releases/download/v1.0.0/rips.phar" "rips.phar"
+
 # Handling PHP-CS-Fixer for PHP >= 8.1 compatibility
 if [ "$PHP_MAJOR_VERSION" -ge 8 ]; then
     echo "PHP version >= 8 detected. Bypassing PHP-CS-Fixer version check."
@@ -126,7 +131,7 @@ download_tool "PHP-CS-Fixer" "https://github.com/FriendsOfPHP/PHP-CS-Fixer/relea
 download_tool "Local PHP Security Checker" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.phar" "local-php-security-checker.phar"
 
 # Verify the downloaded tools
-for tool in phpstan phpunit phpcs psalm php-cs-fixer local-php-security-checker; do
+for tool in phpstan phpunit phpcs psalm php-cs-fixer local-php-security-checker behat phpcb phcbf rips; do
     if [ ! -f ./$tool.phar ]; then
         handle_error "$tool.phar is missing!"
     fi
@@ -151,7 +156,7 @@ echo "Installing pre-commit hooks..."
 pre-commit install
 
 # Test the tools
-for tool in phpstan phpunit phpcs psalm php-cs-fixer local-php-security-checker; do
+for tool in phpstan phpunit phpcs psalm php-cs-fixer local-php-security-checker behat php-cbf rips; do
     echo "Testing $tool..."
     php ./$tool.phar --version
 done
