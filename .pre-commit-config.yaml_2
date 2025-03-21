@@ -9,7 +9,13 @@ repos:
         entry: php ./php_tools/phpstan.phar analyse --level=5
         language: system
         types: [file]
-        args: ["--memory-limit=2G"]  # Removed --autoload-file if no autoloader is used
+        args: ["--memory-limit=2G"]
+      - id: phpstan-alt
+        name: PHPStan Alternative (PHPStan's alternative - **Psalm**)
+        entry: php ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true
+        language: system
+        types: [file]
+        args: ["--errorLevel=medium"]
 
   # PHPUnit (Unit Testing)
   - repo: local
@@ -20,6 +26,12 @@ repos:
         language: system
         types: [file]
         args: ["--filter", "TestClassName"]
+      - id: phpunit-alt
+        name: Run PHPUnit Alternative (**Behat** for Behavioral Testing)
+        entry: php ./php_tools/behat.phar
+        language: system
+        types: [file]
+        args: ["--tags", "not @wip"]
 
   # PHP_CodeSniffer (Coding Standards)
   - repo: local
@@ -27,6 +39,12 @@ repos:
       - id: phpcs
         name: PHP CodeSniffer (PSR-12 Standard)
         entry: php ./php_tools/phpcs.phar --standard=PSR12
+        language: system
+        types: [file]
+        args: ["--ignore=vendor/*"]
+      - id: phpcs-alt
+        name: PHP CodeSniffer Alternative (**PHP_CodeSniffer with custom standard**)
+        entry: php ./php_tools/phpcs.phar --standard=CustomStandard
         language: system
         types: [file]
         args: ["--ignore=vendor/*"]
@@ -40,6 +58,12 @@ repos:
         language: system
         types: [file]
         args: ["--rules=@PSR12"]
+      - id: php-cs-fixer-alt
+        name: PHP-CS-Fixer Alternative (**PHPCBF** - Code Beautifier and Fixer)
+        entry: php ./php_tools/phpcbf.phar --standard=PSR12
+        language: system
+        types: [file]
+        args: ["--ignore=vendor/*"]
 
   # Psalm (Static Analysis)
   - repo: local
@@ -50,6 +74,12 @@ repos:
         language: system
         types: [file]
         args: ["--errorLevel=medium"]
+      - id: psalm-alt
+        name: Psalm Alternative (Static Analysis - **PHPStan**)
+        entry: php ./php_tools/phpstan.phar analyse --level=5
+        language: system
+        types: [file]
+        args: ["--memory-limit=2G"]
 
   # Local PHP Security Checker
   - repo: local
@@ -57,6 +87,11 @@ repos:
       - id: local-php-security-checker
         name: Local PHP Security Checker
         entry: php ./php_tools/local-php-security-checker.phar
+        language: system
+        types: [file]
+      - id: local-php-security-checker-alt
+        name: Local PHP Security Checker Alternative (**RIPS Code Analysis**)
+        entry: php ./php_tools/rips.phar
         language: system
         types: [file]
 
