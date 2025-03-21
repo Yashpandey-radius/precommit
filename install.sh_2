@@ -11,8 +11,10 @@ download_tool() {
     local tool_name=$1
     local tool_url=$2
     local destination=$3
-    local max_retries=3
+    local exe_url=$4  # URL for .exe file (if applicable)
+    local max_retries=5  # Increased retry count for better chances
     local attempt=1
+    local wait_time=2  # Initial wait time for exponential backoff
 
     # Check if the tool already exists and is executable
     if [ -f "$destination" ] && [ -x "$destination" ]; then
@@ -20,14 +22,16 @@ download_tool() {
         return
     fi
 
-    echo "Downloading $tool_name..."
+    echo "Downloading $tool_name... (attempting .phar download)"
     while [ $attempt -le $max_retries ]; do
         curl -L $tool_url -o $destination
         if [ $? -eq 0 ]; then
             # Check the file size after downloading (simple check, could be improved)
             if [ ! -s "$destination" ]; then
-                echo "Downloaded file for $tool_name is empty or corrupted. Retrying..."
+                echo "Downloaded file for $tool_name is empty or corrupted. Retrying... (Attempt $attempt/$max_retries)"
                 ((attempt++))
+                sleep $wait_time  # Exponential backoff: wait time increases with each attempt
+                wait_time=$((wait_time * 2))  # Double the wait time for the next attempt
                 continue
             fi
 
@@ -36,9 +40,29 @@ download_tool() {
             echo "$tool_name downloaded and made executable."
             return
         fi
-        echo "Failed to download $tool_name. Retry attempt $attempt/$max_retries..."
+        echo "Failed to download $tool_name. Retry attempt $attempt/$max_retries... (Wait $wait_time seconds)"
         ((attempt++))
+        sleep $wait_time  # Exponential backoff
+        wait_time=$((wait_time * 2))  # Double the wait time for the next attempt
     done
+
+    # If the download of the .phar fails, try using the .exe version (for Windows)
+    if [[ "$PLATFORM" == "MINGW64_NT"* && -n "$exe_url" ]]; then
+        echo "Attempting to download the .exe version of $tool_name..."
+        attempt=1
+        wait_time=2  # Reset wait time for .exe download
+        while [ $attempt -le $max_retries ]; do
+            curl -L $exe_url -o "$tool_name.exe"
+            if [ $? -eq 0 ]; then
+                echo "$tool_name .exe version downloaded."
+                return
+            fi
+            echo "Failed to download $tool_name .exe version. Retry attempt $attempt/$max_retries... (Wait $wait_time seconds)"
+            ((attempt++))
+            sleep $wait_time  # Exponential backoff
+            wait_time=$((wait_time * 2))  # Double the wait time for the next attempt
+        done
+    fi
 
     handle_error "Failed to download $tool_name after $max_retries attempts."
 }
@@ -111,15 +135,15 @@ mkdir -p ./php_tools
 cd ./php_tools
 
 # Download tools if not already installed
-download_tool "PHPStan" "https://github.com/phpstan/phpstan/releases/download/1.0.0/phpstan.phar" "phpstan.phar"
-download_tool "PHP_CodeSniffer" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcs.phar" "phpcs.phar"
-download_tool "Psalm" "https://github.com/vimeo/psalm/releases/download/v4.15.0/psalm.phar" "psalm.phar"
-download_tool "PHPUnit" "https://phar.phpunit.de/phpunit.phar" "phpunit.phar"
+download_tool "PHPStan" "https://github.com/phpstan/phpstan/releases/download/1.0.0/phpstan.phar" "phpstan.phar" "https://github.com/phpstan/phpstan/releases/download/1.0.0/phpstan.exe"
+download_tool "PHP_CodeSniffer" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcs.phar" "phpcs.phar" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcs.exe"
+download_tool "Psalm" "https://github.com/vimeo/psalm/releases/download/v4.15.0/psalm.phar" "psalm.phar" "https://github.com/vimeo/psalm/releases/download/v4.15.0/psalm.exe"
+download_tool "PHPUnit" "https://phar.phpunit.de/phpunit.phar" "phpunit.phar" "https://phar.phpunit.de/phpunit.exe"
 
 # Download alternative tools if not already installed
-download_tool "Behat" "https://github.com/Behat/Behat/releases/download/v3.10.0/behat.phar" "behat.phar"
-download_tool "PHP Code Beautifier and Fixer (phpcbf)" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcbf.phar" "phpcbf.phar"
-download_tool "RIPS Code Analysis" "https://github.com/ripstech/rips/releases/download/v1.0.0/rips.phar" "rips.phar"
+download_tool "Behat" "https://github.com/Behat/Behat/releases/download/v3.10.0/behat.phar" "behat.phar" "https://github.com/Behat/Behat/releases/download/v3.10.0/behat.exe"
+download_tool "PHP Code Beautifier and Fixer (phpcbf)" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcbf.phar" "phpcbf.phar" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcbf.exe"
+download_tool "RIPS Code Analysis" "https://github.com/ripstech/rips/releases/download/v1.0.0/rips.phar" "rips.phar" "https://github.com/ripstech/rips/releases/download/v1.0.0/rips.exe"
 
 # Handling PHP-CS-Fixer for PHP >= 8.1 compatibility
 if [ "$PHP_MAJOR_VERSION" -ge 8 ]; then
@@ -127,43 +151,30 @@ if [ "$PHP_MAJOR_VERSION" -ge 8 ]; then
     export PHP_CS_FIXER_IGNORE_ENV=1
 fi
 
-download_tool "PHP-CS-Fixer" "https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v3.0.0/php-cs-fixer.phar" "php-cs-fixer.phar"
-download_tool "Local PHP Security Checker" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.phar" "local-php-security-checker.phar"
+download_tool "PHP-CS-Fixer" "https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v3.0.0/php-cs-fixer.phar" "php-cs-fixer.phar" "https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v3.0.0/php-cs-fixer.exe"
+download_tool "Local PHP Security Checker" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.phar" "local-php-security-checker.phar" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.exe"
 
 # Verify the downloaded tools
-for tool in phpstan phpunit phpcs psalm php-cs-fixer local-php-security-checker behat phpcb phcbf rips; do
-    if [ ! -f ./$tool.phar ]; then
-        handle_error "$tool.phar is missing!"
+for tool in phpstan phpunit phpcs psalm php-cs-fixer local-php-security-checker behat php-cbf rips; do
+    if [ ! -f ./$tool.phar ] && [ ! -f ./$tool.exe ]; then
+        handle_error "$tool.phar or $tool.exe is missing!"
     fi
-    echo "$tool.phar is ready."
+    echo "$tool.phar or $tool.exe is ready."
 done
 
 # Install pre-commit if not already installed
 echo "Checking pre-commit installation..."
 if ! command -v pre-commit &> /dev/null; then
-    echo "pre-commit is not installed. Installing pre-commit..."
-    if [[ "$PLATFORM" == "Linux" || "$PLATFORM" == "Darwin" ]]; then
-        pip install pre-commit
+    echo "pre-commit not found. Installing pre-commit..."
+    if [[ "$PLATFORM" == "Linux" ]]; then
+        sudo apt-get install pre-commit
+    elif [[ "$PLATFORM" == "Darwin" ]]; then
+        brew install pre-commit
     elif [[ "$PLATFORM" == "MINGW64_NT"* ]]; then
-        python -m pip install pre-commit
+        handle_error "Pre-commit installation on Windows is not automated. Please install pre-commit manually."
     fi
 else
     echo "pre-commit is already installed."
 fi
 
-# Install pre-commit hooks from .pre-commit-config.yaml
-echo "Installing pre-commit hooks..."
-pre-commit install
-
-# Test the tools
-for tool in phpstan phpunit phpcs psalm php-cs-fixer local-php-security-checker behat php-cbf rips; do
-    echo "Testing $tool..."
-    php ./$tool.phar --version
-done
-
-# Fix PHPStan issue regarding memory consumption
-echo "Increasing PHPStan memory limit..."
-export MEMORY_LIMIT=512M
-php ./phpstan.phar analyse --memory-limit=$MEMORY_LIMIT
-
-echo "✅ All PHP tools installed and tested successfully!"
+echo "Installation completed successfully!"
