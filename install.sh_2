@@ -174,7 +174,6 @@ if ! command -v pre-commit &> /dev/null; then
         brew install pre-commit
     elif [[ "$PLATFORM" == "MINGW64_NT"* ]]; then
         # For Windows (MSYS/MinGW)
-        # Assuming pre-commit can be installed through pip or other methods in MSYS/MinGW
         echo "Attempting to install pre-commit using pip..."
         if command -v pip &> /dev/null; then
             pip install pre-commit
