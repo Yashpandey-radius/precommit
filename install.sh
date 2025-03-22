@@ -95,6 +95,11 @@ if ! command -v php &> /dev/null; then
             sudo yum clean metadata
             sudo yum install -y php php-cli php-curl php-mbstring php-xml php-zip
             sleep 5  # Wait for the installation to complete
+        elif [ -f /etc/os-release ] && grep -q "Ubuntu" /etc/os-release; then
+            echo "[INFO] Detected Ubuntu. Installing PHP..."
+            sudo apt update
+            sudo apt install -y php php-cli php-curl php-mbstring php-xml php-zip
+            sleep 5  # Wait for the installation to complete
         fi
     elif [[ "$PLATFORM" == "Darwin" ]]; then
         # For macOS (using Homebrew)
