@@ -168,31 +168,26 @@ sleep 2  # Wait for the download completion
 download_tool "Local PHP Security Checker" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.phar" "local-php-security-checker.phar" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.exe"
 sleep 2  # Wait for the download completion
 
-# Install pre-commit using multiple methods
+# Ensure pip3 is installed (for Linux and macOS)
+if ! command -v pip3 &> /dev/null; then
+    echo "[INFO] pip3 is not installed. Installing pip3..."
+    # For Amazon Linux or any other platform
+    if [[ "$PLATFORM" == "Linux" ]]; then
+        # For Amazon Linux
+        sudo yum install -y python3
+        sudo python3 -m ensurepip --upgrade
+        sudo python3 -m pip install --upgrade pip
+    elif [[ "$PLATFORM" == "Darwin" ]]; then
+        # For macOS (using Homebrew)
+        brew install python3
+    fi
+fi
+
+# Install pre-commit using pip3
 echo "[INFO] Checking if pre-commit is installed..."
-
-# Install pre-commit via apt (if necessary)
-echo "[INFO] Ensuring pre-commit is installed via apt..."
 if ! command -v pre-commit &> /dev/null; then
-    echo "[INFO] pre-commit is not installed. Installing via apt..."
-    sudo apt install -y pre-commit
-    sleep 3  # Wait for apt to finish installation
-fi
-
-# Install pre-commit via pip (if necessary)
-echo "[INFO] Ensuring pre-commit is installed via pip..."
-if ! command -v pre-commit &> /dev/null; then
-    echo "[INFO] pre-commit is still missing. Installing via pip..."
-    python3 -m pip install --user pre-commit
-    sleep 3  # Wait for pip installation
-fi
-
-# Install pre-commit via pipx (if necessary)
-echo "[INFO] Ensuring pre-commit is installed via pipx..."
-if ! command -v pre-commit &> /dev/null; then
-    echo "[INFO] pre-commit is still missing. Installing via pipx..."
-    pipx install pre-commit
-    sleep 3  # Wait for pipx installation
+    echo "[INFO] Installing pre-commit using pip3..."
+    pip3 install --user pre-commit
 fi
 
 # Run "pre-commit install" to generate hooks
