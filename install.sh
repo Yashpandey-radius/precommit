@@ -95,11 +95,6 @@ if ! command -v php &> /dev/null; then
             sudo yum clean metadata
             sudo yum install -y php php-cli php-curl php-mbstring php-xml php-zip
             sleep 5  # Wait for the installation to complete
-        elif [ -f /etc/os-release ] && grep -q "Ubuntu" /etc/os-release; then
-            echo "[INFO] Detected Ubuntu. Installing PHP..."
-            sudo apt update
-            sudo apt install -y php php-cli php-curl php-mbstring php-xml php-zip
-            sleep 5  # Wait for the installation to complete
         fi
     elif [[ "$PLATFORM" == "Darwin" ]]; then
         # For macOS (using Homebrew)
@@ -200,9 +195,12 @@ fi
 # Ensure pipx is installed
 if ! command -v pipx &> /dev/null; then
     echo "[INFO] pipx is not installed. Installing pipx..."
-    python3 -m pip install --user pipx
+    # Try installing pipx using a virtual environment
+    python3 -m venv ~/.pipx-venv
+    source ~/.pipx-venv/bin/activate
+    python3 -m pip install pipx
     if ! command -v pipx &> /dev/null; then
-        handle_error "[ERROR] Failed to install pipx."
+        handle_error "[ERROR] Failed to install pipx in virtual environment."
     fi
 fi
 
