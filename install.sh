@@ -134,6 +134,16 @@ if ! php -m | grep -q 'curl'; then
     handle_error "[ERROR] PHP curl extension is required."
 fi
 
+# Install additional PHP modules
+echo "[INFO] Installing additional PHP modules (mbstring, xml, zip, intl)..."
+if [[ "$PLATFORM" == "Linux" ]]; then
+    sudo yum install -y php-mbstring php-xml php-zip php-intl
+    sleep 5  # Wait for installation to complete
+elif [[ "$PLATFORM" == "Darwin" ]]; then
+    brew install php@8.0-mbstring php@8.0-xml php@8.0-zip php@8.0-intl
+    sleep 5  # Wait for installation to complete
+fi
+
 # Create a directory for PHP tools
 echo "[INFO] Creating php_tools directory..."
 mkdir -p ./php_tools
@@ -194,13 +204,6 @@ fi
 echo "[INFO] Running 'pre-commit install' to set up git hooks..."
 pre-commit install
 sleep 2  # Wait for pre-commit installation to complete
-
-# Install additional PHP modules (example)
-echo "[INFO] Installing additional PHP modules..."
-if [[ "$PLATFORM" == "Linux" || "$PLATFORM" == "Darwin" ]]; then
-    sudo apt-get install -y php-mbstring php-xml php-curl php-zip
-    sleep 5  # Wait for the additional module installation
-fi
 
 # Final message
 echo "[INFO] Installation completed successfully!"
