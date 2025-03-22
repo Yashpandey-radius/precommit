@@ -87,10 +87,14 @@ echo "[INFO] Checking PHP installation..."
 if ! command -v php &> /dev/null; then
     echo "[INFO] PHP is not installed. Installing PHP..."
     if [[ "$PLATFORM" == "Linux" ]]; then
-        # For Linux (Amazon Linux)
-        if [ -f /etc/os-release ] && grep -q "Amazon Linux" /etc/os-release; then
-            echo "[INFO] Detected Amazon Linux. Installing PHP..."
-            # Enable Amazon Linux Extras for PHP
+        # For Ubuntu or Amazon Linux
+        if [ -f /etc/os-release ] && grep -q "Ubuntu" /etc/os-release; then
+            # For Ubuntu
+            sudo apt-get update
+            sudo apt-get install -y php php-cli php-curl php-mbstring php-xml php-zip
+            sleep 5  # Wait for the installation to complete
+        elif [ -f /etc/os-release ] && grep -q "Amazon Linux" /etc/os-release; then
+            # For Amazon Linux
             sudo amazon-linux-extras enable php8.0
             sudo yum clean metadata
             sudo yum install -y php php-cli php-curl php-mbstring php-xml php-zip
@@ -134,13 +138,6 @@ if ! php -m | grep -q 'curl'; then
     handle_error "[ERROR] PHP curl extension is required."
 fi
 
-# Install additional PHP modules if not already installed
-echo "[INFO] Installing additional PHP modules..."
-if [[ "$PLATFORM" == "Linux" || "$PLATFORM" == "Darwin" ]]; then
-    sudo apt-get install -y php-mbstring php-xml php-zip php-curl
-    sleep 2  # Wait for installation completion
-fi
-
 # Create a directory for PHP tools
 echo "[INFO] Creating php_tools directory..."
 mkdir -p ./php_tools
@@ -178,57 +175,23 @@ sleep 2  # Wait for the download completion
 # Ensure pip3 is installed (for Linux and macOS)
 if ! command -v pip3 &> /dev/null; then
     echo "[INFO] pip3 is not installed. Installing pip3..."
-    # For Ubuntu/Debian-based systems
+    # For Amazon Linux or any other platform
     if [[ "$PLATFORM" == "Linux" ]]; then
-        sudo apt update
-        sudo apt install -y python3-pip
+        # For Amazon Linux
+        sudo yum install -y python3
+        sudo python3 -m ensurepip --upgrade
+        sudo python3 -m pip install --upgrade pip
     elif [[ "$PLATFORM" == "Darwin" ]]; then
         # For macOS (using Homebrew)
         brew install python3
     fi
-    # Check if pip3 is installed now
-    if ! command -v pip3 &> /dev/null; then
-        handle_error "[ERROR] Failed to install pip3."
-    fi
 fi
 
-# Ensure pipx is installed
-if ! command -v pipx &> /dev/null; then
-    echo "[INFO] pipx is not installed. Installing pipx..."
-    # Try installing pipx using a virtual environment
-    python3 -m venv ~/.pipx-venv
-    source ~/.pipx-venv/bin/activate
-    python3 -m pip install pipx
-    if ! command -v pipx &> /dev/null; then
-        handle_error "[ERROR] Failed to install pipx in virtual environment."
-    fi
-fi
-
-# Now install pre-commit using pip3
+# Install pre-commit using pip3
+echo "[INFO] Checking if pre-commit is installed..."
 if ! command -v pre-commit &> /dev/null; then
     echo "[INFO] Installing pre-commit using pip3..."
     pip3 install --user pre-commit
-    if ! command -v pre-commit &> /dev/null; then
-        handle_error "[ERROR] Failed to install pre-commit."
-    fi
-fi
-
-# If pre-commit is still not installed, try using pip
-if ! command -v pre-commit &> /dev/null; then
-    echo "[INFO] Installing pre-commit using pip..."
-    pip install --user pre-commit
-    if ! command -v pre-commit &> /dev/null; then
-        handle_error "[ERROR] Failed to install pre-commit."
-    fi
-fi
-
-# If pre-commit is still not installed, try using pipx
-if ! command -v pre-commit &> /dev/null; then
-    echo "[INFO] Installing pre-commit using pipx..."
-    pipx install pre-commit
-    if ! command -v pre-commit &> /dev/null; then
-        handle_error "[ERROR] Failed to install pre-commit."
-    fi
 fi
 
 # Run "pre-commit install" to generate hooks
