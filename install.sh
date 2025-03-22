@@ -175,46 +175,57 @@ sleep 2  # Wait for the download completion
 download_tool "Local PHP Security Checker" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.phar" "local-php-security-checker.phar" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.exe"
 sleep 2  # Wait for the download completion
 
-# Ensure python3 and pip3 are installed (for Linux and macOS)
-if ! command -v python3 &> /dev/null; then
-    echo "[INFO] python3 is not installed. Installing python3..."
+# Ensure pip3 is installed (for Linux and macOS)
+if ! command -v pip3 &> /dev/null; then
+    echo "[INFO] pip3 is not installed. Installing pip3..."
+    # For Ubuntu/Debian-based systems
     if [[ "$PLATFORM" == "Linux" ]]; then
-        sudo apt-get update
-        sudo apt-get install -y python3 python3-pip
+        sudo apt update
+        sudo apt install -y python3-pip
     elif [[ "$PLATFORM" == "Darwin" ]]; then
+        # For macOS (using Homebrew)
         brew install python3
+    fi
+    # Check if pip3 is installed now
+    if ! command -v pip3 &> /dev/null; then
+        handle_error "[ERROR] Failed to install pip3."
     fi
 fi
 
-# Install pip3 if not installed
-if ! command -v pip3 &> /dev/null; then
-    echo "[INFO] pip3 is not installed. Installing pip3..."
-    sudo python3 -m ensurepip --upgrade
-    sudo python3 -m pip install --upgrade pip
+# Ensure pipx is installed
+if ! command -v pipx &> /dev/null; then
+    echo "[INFO] pipx is not installed. Installing pipx..."
+    python3 -m pip install --user pipx
+    if ! command -v pipx &> /dev/null; then
+        handle_error "[ERROR] Failed to install pipx."
+    fi
 fi
 
-# Install pre-commit using pip3, pip, or pipx if not installed
-echo "[INFO] Checking if pre-commit is installed..."
-
-# Try installing pre-commit via pip3
+# Now install pre-commit using pip3
 if ! command -v pre-commit &> /dev/null; then
     echo "[INFO] Installing pre-commit using pip3..."
     pip3 install --user pre-commit
-    echo "[INFO] pre-commit version: $(pre-commit --version)"
+    if ! command -v pre-commit &> /dev/null; then
+        handle_error "[ERROR] Failed to install pre-commit."
+    fi
 fi
 
 # If pre-commit is still not installed, try using pip
 if ! command -v pre-commit &> /dev/null; then
     echo "[INFO] Installing pre-commit using pip..."
     pip install --user pre-commit
-    echo "[INFO] pre-commit version: $(pre-commit --version)"
+    if ! command -v pre-commit &> /dev/null; then
+        handle_error "[ERROR] Failed to install pre-commit."
+    fi
 fi
 
 # If pre-commit is still not installed, try using pipx
 if ! command -v pre-commit &> /dev/null; then
     echo "[INFO] Installing pre-commit using pipx..."
     pipx install pre-commit
-    echo "[INFO] pre-commit version: $(pre-commit --version)"
+    if ! command -v pre-commit &> /dev/null; then
+        handle_error "[ERROR] Failed to install pre-commit."
+    fi
 fi
 
 # Run "pre-commit install" to generate hooks
