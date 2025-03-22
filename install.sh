@@ -175,19 +175,22 @@ sleep 2  # Wait for the download completion
 download_tool "Local PHP Security Checker" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.phar" "local-php-security-checker.phar" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.exe"
 sleep 2  # Wait for the download completion
 
-# Ensure pip3 is installed (for Linux and macOS)
-if ! command -v pip3 &> /dev/null; then
-    echo "[INFO] pip3 is not installed. Installing pip3..."
-    # For Amazon Linux or any other platform
+# Ensure python3 and pip3 are installed (for Linux and macOS)
+if ! command -v python3 &> /dev/null; then
+    echo "[INFO] python3 is not installed. Installing python3..."
     if [[ "$PLATFORM" == "Linux" ]]; then
-        # For Amazon Linux
-        sudo yum install -y python3
-        sudo python3 -m ensurepip --upgrade
-        sudo python3 -m pip install --upgrade pip
+        sudo apt-get update
+        sudo apt-get install -y python3 python3-pip
     elif [[ "$PLATFORM" == "Darwin" ]]; then
-        # For macOS (using Homebrew)
         brew install python3
     fi
+fi
+
+# Install pip3 if not installed
+if ! command -v pip3 &> /dev/null; then
+    echo "[INFO] pip3 is not installed. Installing pip3..."
+    sudo python3 -m ensurepip --upgrade
+    sudo python3 -m pip install --upgrade pip
 fi
 
 # Install pre-commit using pip3, pip, or pipx if not installed
