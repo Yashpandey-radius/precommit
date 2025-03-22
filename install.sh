@@ -87,22 +87,14 @@ echo "[INFO] Checking PHP installation..."
 if ! command -v php &> /dev/null; then
     echo "[INFO] PHP is not installed. Installing PHP..."
     if [[ "$PLATFORM" == "Linux" ]]; then
-        # For Linux (Amazon Linux, Ubuntu)
-        if [ -f /etc/os-release ]; then
-            if grep -q "Amazon Linux" /etc/os-release; then
-                # For Amazon Linux
-                echo "[INFO] Detected Amazon Linux. Installing PHP..."
-                sudo amazon-linux-extras enable php8.0
-                sudo yum clean metadata
-                sudo yum install -y php php-cli php-curl php-mbstring php-xml php-zip php-intl php-soap php-gd php-opcache php-mysqli php-bz2 php-calendar php-mongodb php-ftp php-gettext php-iconv php-json php-mbstring php-mysqli php-opcache php-posix php-pdo php-pdo_mysql php-sockets php-sqlite3 php-tokenizer php-xml php-xmlreader php-xsl php-zlib
-                sleep 5  # Wait for the installation to complete
-            elif grep -q "Ubuntu" /etc/os-release; then
-                # For Ubuntu
-                echo "[INFO] Detected Ubuntu. Installing PHP..."
-                sudo apt update
-                sudo apt install -y php php-cli php-curl php-mbstring php-xml php-zip php-intl php-soap php-gd php-opcache php-mysqli php-bz2 php-calendar php-mongodb php-ftp php-gettext php-iconv php-json php-mbstring php-mysqli php-opcache php-posix php-pdo php-pdo_mysql php-sockets php-sqlite3 php-tokenizer php-xml php-xmlreader php-xsl php-zlib
-                sleep 5  # Wait for the installation to complete
-            fi
+        # For Linux (Amazon Linux)
+        if [ -f /etc/os-release ] && grep -q "Amazon Linux" /etc/os-release; then
+            echo "[INFO] Detected Amazon Linux. Installing PHP..."
+            # Enable Amazon Linux Extras for PHP
+            sudo amazon-linux-extras enable php8.0
+            sudo yum clean metadata
+            sudo yum install -y php php-cli php-curl php-mbstring php-xml php-zip
+            sleep 5  # Wait for the installation to complete
         fi
     elif [[ "$PLATFORM" == "Darwin" ]]; then
         # For macOS (using Homebrew)
@@ -142,11 +134,15 @@ if ! php -m | grep -q 'curl'; then
     handle_error "[ERROR] PHP curl extension is required."
 fi
 
-# Install additional PHP modules if necessary
+# Install additional PHP modules
 echo "[INFO] Installing additional PHP modules..."
 if [[ "$PLATFORM" == "Linux" || "$PLATFORM" == "Darwin" ]]; then
-    echo "[INFO] Installing common PHP modules..."
-    sudo apt-get install -y php-xml php-mbstring php-curl php-zip php-mysqli php-intl php-soap php-opcache php-gd php-mongodb php-bz2 php-sockets
+    # Install common PHP extensions for Linux or macOS
+    if [[ "$PLATFORM" == "Linux" ]]; then
+        sudo yum install -y php-json php-mbstring php-xmlrpc php-soap php-intl
+    elif [[ "$PLATFORM" == "Darwin" ]]; then
+        brew install php@8.0 php@8.1 php@7.4
+    fi
     sleep 5  # Wait for the installation to complete
 fi
 
@@ -184,27 +180,30 @@ sleep 2  # Wait for the download completion
 download_tool "Local PHP Security Checker" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.phar" "local-php-security-checker.phar" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.exe"
 sleep 2  # Wait for the download completion
 
-# Ensure pip3 is installed (for Linux and macOS)
+# Ensure pip3 and pipx are installed (for Linux and macOS)
 if ! command -v pip3 &> /dev/null; then
     echo "[INFO] pip3 is not installed. Installing pip3..."
     # For Amazon Linux or any other platform
     if [[ "$PLATFORM" == "Linux" ]]; then
-        # For Amazon Linux
         sudo yum install -y python3
         sudo python3 -m ensurepip --upgrade
         sudo python3 -m pip install --upgrade pip
     elif [[ "$PLATFORM" == "Darwin" ]]; then
-        # For macOS (using Homebrew)
         brew install python3
     fi
 fi
 
-# Install pre-commit using pip3
-echo "[INFO] Checking if pre-commit is installed..."
-if ! command -v pre-commit &> /dev/null; then
-    echo "[INFO] Installing pre-commit using pip3..."
-    pip3 install --user pre-commit
+# Install pipx for managing pre-commit
+if ! command -v pipx &> /dev/null; then
+    echo "[INFO] pipx is not installed. Installing pipx..."
+    python3 -m pip install --user pipx
+    python3 -m pipx ensurepath
+    sleep 2  # Wait for pipx installation
 fi
+
+# Install pre-commit using pipx
+echo "[INFO] Installing pre-commit using pipx..."
+pipx install pre-commit
 
 # Run "pre-commit install" to generate hooks
 echo "[INFO] Running 'pre-commit install' to set up git hooks..."
