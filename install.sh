@@ -187,11 +187,27 @@ if ! command -v pip3 &> /dev/null; then
     fi
 fi
 
-# Install pre-commit using pip3
+# Install pre-commit using pip3 with different methods
 echo "[INFO] Checking if pre-commit is installed..."
-if ! command -v pre-commit &> /dev/null; then
-    echo "[INFO] Installing pre-commit using pip3..."
-    pip3 install --user pre-commit
+
+# Check if we're inside a virtual environment
+if [ -z "$VIRTUAL_ENV" ]; then
+    echo "[INFO] No virtual environment detected. Checking for pipx installation..."
+    
+    # Check if pipx is installed and use it
+    if ! command -v pipx &> /dev/null; then
+        echo "[INFO] pipx not found. Installing pre-commit system-wide..."
+        
+        # Try installing pre-commit with pip3 system-wide using --break-system-packages
+        echo "[INFO] Installing pre-commit using pip3 with --break-system-packages..."
+        sudo pip3 install --break-system-packages pre-commit
+    else
+        echo "[INFO] Installing pre-commit using pipx..."
+        pipx install pre-commit
+    fi
+else
+    echo "[INFO] Virtual environment detected. Installing pre-commit inside the virtual environment..."
+    pip install pre-commit
 fi
 
 # Run "pre-commit install" to generate hooks
