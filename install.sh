@@ -87,29 +87,22 @@ echo "[INFO] Checking PHP installation..."
 if ! command -v php &> /dev/null; then
     echo "[INFO] PHP is not installed. Installing PHP..."
     if [[ "$PLATFORM" == "Linux" ]]; then
-        # For Linux (Amazon Linux, Ubuntu)
-        if [ -f /etc/os-release ]; then
-            if grep -q "Amazon Linux" /etc/os-release; then
-                # For Amazon Linux
-                echo "[INFO] Detected Amazon Linux. Installing PHP..."
-                sudo amazon-linux-extras enable php8.0
-                sudo yum clean metadata
-                sudo yum install -y php php-cli php-curl php-mbstring php-xml php-zip php-intl php-soap php-gd php-opcache php-mysqli php-bz2 php-calendar php-mongodb php-ftp php-gettext php-iconv php-json php-mbstring php-mysqli php-opcache php-posix php-pdo php-pdo_mysql php-sockets php-sqlite3 php-tokenizer php-xml php-xmlreader php-xsl php-zlib
-                sleep 5  # Wait for the installation to complete
-            elif grep -q "Ubuntu" /etc/os-release; then
-                # For Ubuntu
-                echo "[INFO] Detected Ubuntu. Installing PHP..."
-                sudo apt update
-                sudo apt install -y php php-cli php-curl php-mbstring php-xml php-zip php-intl php-soap php-gd php-opcache php-mysqli php-bz2 php-calendar php-mongodb php-ftp php-gettext php-iconv php-json php-mbstring php-mysqli php-opcache php-posix php-pdo php-pdo_mysql php-sockets php-sqlite3 php-tokenizer php-xml php-xmlreader php-xsl php-zlib
-                sleep 5  # Wait for the installation to complete
-            fi
+        # For Ubuntu or Debian-based systems
+        sudo apt update
+        sudo apt install -y php php-cli php-curl php-mbstring php-xml php-zip
+        if [ $? -ne 0 ]; then
+            handle_error "[ERROR] PHP installation failed. Please check your system configuration."
         fi
+        sleep 5  # Wait for the installation to complete
     elif [[ "$PLATFORM" == "Darwin" ]]; then
         # For macOS (using Homebrew)
         if ! command -v brew &> /dev/null; then
             handle_error "[ERROR] Homebrew is not installed. Please install Homebrew first."
         fi
         brew install php
+        if [ $? -ne 0 ]; then
+            handle_error "[ERROR] PHP installation failed on macOS. Please check your Homebrew installation."
+        fi
         sleep 5  # Wait for the installation to complete
     elif [[ "$PLATFORM" == "MINGW64_NT"* ]]; then
         # For Windows (using MSYS/MinGW)
@@ -191,24 +184,17 @@ if ! command -v pip3 &> /dev/null; then
     fi
 fi
 
-# Create a virtual environment for Python package management
-if ! command -v python3 -m venv &> /dev/null; then
-    echo "[INFO] python3 -m venv is not available, installing python3-venv..."
-    sudo apt-get install python3-venv  # For Ubuntu and other Debian-based distros
+# Install pre-commit using pip3
+echo "[INFO] Checking if pre-commit is installed..."
+if ! command -v pre-commit &> /dev/null; then
+    echo "[INFO] Installing pre-commit using pip3..."
+    pip3 install --user pre-commit
 fi
-
-# Create and activate a virtual environment
-echo "[INFO] Creating and activating a virtual environment for pre-commit..."
-python3 -m venv ~/.venv_precommit
-source ~/.venv_precommit/bin/activate
-
-# Install pre-commit using pip inside the virtual environment
-echo "[INFO] Installing pre-commit using pip..."
-pip install pre-commit
 
 # Run "pre-commit install" to generate hooks
 echo "[INFO] Running 'pre-commit install' to set up git hooks..."
 pre-commit install
+sleep 2  # Wait for pre-commit installation to complete
 
 # Final message
 echo "[INFO] Installation completed successfully!"
