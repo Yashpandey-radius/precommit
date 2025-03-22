@@ -190,25 +190,11 @@ if ! command -v pip3 &> /dev/null; then
     fi
 fi
 
-# Install pre-commit using pip3, pip, or pipx if not installed
+# Install pre-commit using pip3
 echo "[INFO] Checking if pre-commit is installed..."
-
-# Try installing pre-commit via pip3
 if ! command -v pre-commit &> /dev/null; then
     echo "[INFO] Installing pre-commit using pip3..."
     pip3 install --user pre-commit
-fi
-
-# If pre-commit is still not installed, try using pip
-if ! command -v pre-commit &> /dev/null; then
-    echo "[INFO] Installing pre-commit using pip..."
-    pip install --user pre-commit
-fi
-
-# If pre-commit is still not installed, try using pipx
-if ! command -v pre-commit &> /dev/null; then
-    echo "[INFO] Installing pre-commit using pipx..."
-    pipx install pre-commit
 fi
 
 # Run "pre-commit install" to generate hooks
