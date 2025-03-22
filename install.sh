@@ -87,14 +87,22 @@ echo "[INFO] Checking PHP installation..."
 if ! command -v php &> /dev/null; then
     echo "[INFO] PHP is not installed. Installing PHP..."
     if [[ "$PLATFORM" == "Linux" ]]; then
-        # For Linux (Amazon Linux)
-        if [ -f /etc/os-release ] && grep -q "Amazon Linux" /etc/os-release; then
-            echo "[INFO] Detected Amazon Linux. Installing PHP..."
-            # Enable Amazon Linux Extras for PHP
-            sudo amazon-linux-extras enable php8.0
-            sudo yum clean metadata
-            sudo yum install -y php php-cli php-curl php-mbstring php-xml php-zip
-            sleep 5  # Wait for the installation to complete
+        # For Linux (Amazon Linux, Ubuntu)
+        if [ -f /etc/os-release ]; then
+            if grep -q "Amazon Linux" /etc/os-release; then
+                # For Amazon Linux
+                echo "[INFO] Detected Amazon Linux. Installing PHP..."
+                sudo amazon-linux-extras enable php8.0
+                sudo yum clean metadata
+                sudo yum install -y php php-cli php-curl php-mbstring php-xml php-zip php-intl php-soap php-gd php-opcache php-mysqli php-bz2 php-calendar php-mongodb php-ftp php-gettext php-iconv php-json php-mbstring php-mysqli php-opcache php-posix php-pdo php-pdo_mysql php-sockets php-sqlite3 php-tokenizer php-xml php-xmlreader php-xsl php-zlib
+                sleep 5  # Wait for the installation to complete
+            elif grep -q "Ubuntu" /etc/os-release; then
+                # For Ubuntu
+                echo "[INFO] Detected Ubuntu. Installing PHP..."
+                sudo apt update
+                sudo apt install -y php php-cli php-curl php-mbstring php-xml php-zip php-intl php-soap php-gd php-opcache php-mysqli php-bz2 php-calendar php-mongodb php-ftp php-gettext php-iconv php-json php-mbstring php-mysqli php-opcache php-posix php-pdo php-pdo_mysql php-sockets php-sqlite3 php-tokenizer php-xml php-xmlreader php-xsl php-zlib
+                sleep 5  # Wait for the installation to complete
+            fi
         fi
     elif [[ "$PLATFORM" == "Darwin" ]]; then
         # For macOS (using Homebrew)
@@ -134,14 +142,12 @@ if ! php -m | grep -q 'curl'; then
     handle_error "[ERROR] PHP curl extension is required."
 fi
 
-# Install additional PHP modules
-echo "[INFO] Installing additional PHP modules (mbstring, xml, zip, intl)..."
-if [[ "$PLATFORM" == "Linux" ]]; then
-    sudo yum install -y php-mbstring php-xml php-zip php-intl
-    sleep 5  # Wait for installation to complete
-elif [[ "$PLATFORM" == "Darwin" ]]; then
-    brew install php@8.0-mbstring php@8.0-xml php@8.0-zip php@8.0-intl
-    sleep 5  # Wait for installation to complete
+# Install additional PHP modules if necessary
+echo "[INFO] Installing additional PHP modules..."
+if [[ "$PLATFORM" == "Linux" || "$PLATFORM" == "Darwin" ]]; then
+    echo "[INFO] Installing common PHP modules..."
+    sudo apt-get install -y php-xml php-mbstring php-curl php-zip php-mysqli php-intl php-soap php-opcache php-gd php-mongodb php-bz2 php-sockets
+    sleep 5  # Wait for the installation to complete
 fi
 
 # Create a directory for PHP tools
