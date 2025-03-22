@@ -134,16 +134,11 @@ if ! php -m | grep -q 'curl'; then
     handle_error "[ERROR] PHP curl extension is required."
 fi
 
-# Install additional PHP modules
+# Install additional PHP modules if not already installed
 echo "[INFO] Installing additional PHP modules..."
 if [[ "$PLATFORM" == "Linux" || "$PLATFORM" == "Darwin" ]]; then
-    # Install common PHP extensions for Linux or macOS
-    if [[ "$PLATFORM" == "Linux" ]]; then
-        sudo yum install -y php-json php-mbstring php-xmlrpc php-soap php-intl
-    elif [[ "$PLATFORM" == "Darwin" ]]; then
-        brew install php@8.0 php@8.1 php@7.4
-    fi
-    sleep 5  # Wait for the installation to complete
+    sudo apt-get install -y php-mbstring php-xml php-zip php-curl
+    sleep 2  # Wait for installation completion
 fi
 
 # Create a directory for PHP tools
@@ -180,30 +175,41 @@ sleep 2  # Wait for the download completion
 download_tool "Local PHP Security Checker" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.phar" "local-php-security-checker.phar" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.exe"
 sleep 2  # Wait for the download completion
 
-# Ensure pip3 and pipx are installed (for Linux and macOS)
+# Ensure pip3 is installed (for Linux and macOS)
 if ! command -v pip3 &> /dev/null; then
     echo "[INFO] pip3 is not installed. Installing pip3..."
     # For Amazon Linux or any other platform
     if [[ "$PLATFORM" == "Linux" ]]; then
+        # For Amazon Linux
         sudo yum install -y python3
         sudo python3 -m ensurepip --upgrade
         sudo python3 -m pip install --upgrade pip
     elif [[ "$PLATFORM" == "Darwin" ]]; then
+        # For macOS (using Homebrew)
         brew install python3
     fi
 fi
 
-# Install pipx for managing pre-commit
-if ! command -v pipx &> /dev/null; then
-    echo "[INFO] pipx is not installed. Installing pipx..."
-    python3 -m pip install --user pipx
-    python3 -m pipx ensurepath
-    sleep 2  # Wait for pipx installation
+# Install pre-commit using pip3, pip, or pipx if not installed
+echo "[INFO] Checking if pre-commit is installed..."
+
+# Try installing pre-commit via pip3
+if ! command -v pre-commit &> /dev/null; then
+    echo "[INFO] Installing pre-commit using pip3..."
+    pip3 install --user pre-commit
 fi
 
-# Install pre-commit using pipx
-echo "[INFO] Installing pre-commit using pipx..."
-pipx install pre-commit
+# If pre-commit is still not installed, try using pip
+if ! command -v pre-commit &> /dev/null; then
+    echo "[INFO] Installing pre-commit using pip..."
+    pip install --user pre-commit
+fi
+
+# If pre-commit is still not installed, try using pipx
+if ! command -v pre-commit &> /dev/null; then
+    echo "[INFO] Installing pre-commit using pipx..."
+    pipx install pre-commit
+fi
 
 # Run "pre-commit install" to generate hooks
 echo "[INFO] Running 'pre-commit install' to set up git hooks..."
