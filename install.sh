@@ -142,21 +142,21 @@ cd ./php_tools
 
 # Download tools if not already installed
 download_tool "PHPStan" "https://github.com/phpstan/phpstan/releases/download/1.0.0/phpstan.phar" "phpstan.phar" "https://github.com/phpstan/phpstan/releases/download/1.0.0/phpstan.exe"
-sleep 2  # Wait for the download completion
+sleep 5  # Increased wait time to ensure tool is downloaded
 download_tool "PHP_CodeSniffer" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcs.phar" "phpcs.phar" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcs.exe"
-sleep 2  # Wait for the download completion
+sleep 5  # Increased wait time to ensure tool is downloaded
 download_tool "Psalm" "https://github.com/vimeo/psalm/releases/download/v4.15.0/psalm.phar" "psalm.phar" "https://github.com/vimeo/psalm/releases/download/v4.15.0/psalm.exe"
-sleep 2  # Wait for the download completion
+sleep 5  # Increased wait time to ensure tool is downloaded
 download_tool "PHPUnit" "https://phar.phpunit.de/phpunit.phar" "phpunit.phar" "https://phar.phpunit.de/phpunit.exe"
-sleep 2  # Wait for the download completion
+sleep 5  # Increased wait time to ensure tool is downloaded
 
 # Download alternative tools if not already installed
 download_tool "Behat" "https://github.com/Behat/Behat/releases/download/v3.10.0/behat.phar" "behat.phar" "https://github.com/Behat/Behat/releases/download/v3.10.0/behat.exe"
-sleep 2  # Wait for the download completion
+sleep 5  # Increased wait time to ensure tool is downloaded
 download_tool "PHP Code Beautifier and Fixer (phpcbf)" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcbf.phar" "phpcbf.phar" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcbf.exe"
-sleep 2  # Wait for the download completion
+sleep 5  # Increased wait time to ensure tool is downloaded
 download_tool "RIPS Code Analysis" "https://github.com/ripstech/rips/releases/download/v1.0.0/rips.phar" "rips.phar" "https://github.com/ripstech/rips/releases/download/v1.0.0/rips.exe"
-sleep 2  # Wait for the download completion
+sleep 5  # Increased wait time to ensure tool is downloaded
 
 # Handling PHP-CS-Fixer for PHP >= 8.1 compatibility
 if [ "$PHP_MAJOR_VERSION" -ge 8 ]; then
@@ -165,9 +165,9 @@ if [ "$PHP_MAJOR_VERSION" -ge 8 ]; then
 fi
 
 download_tool "PHP-CS-Fixer" "https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v3.0.0/php-cs-fixer.phar" "php-cs-fixer.phar" "https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v3.0.0/php-cs-fixer.exe"
-sleep 2  # Wait for the download completion
+sleep 5  # Increased wait time to ensure tool is downloaded
 download_tool "Local PHP Security Checker" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.phar" "local-php-security-checker.phar" "https://github.com/robrichards/php-tools/releases/download/v1.0.0/local-php-security-checker.exe"
-sleep 2  # Wait for the download completion
+sleep 5  # Increased wait time to ensure tool is downloaded
 
 # Ensure pip3 is installed (for Linux and macOS)
 if ! command -v pip3 &> /dev/null; then
@@ -189,6 +189,7 @@ echo "[INFO] Checking if pre-commit is installed..."
 if ! command -v pre-commit &> /dev/null; then
     echo "[INFO] Installing pre-commit using pip3..."
     pip3 install --user pre-commit
+    sleep 2  # Wait for the pre-commit installation
 fi
 
 # Run "pre-commit install" to generate hooks
