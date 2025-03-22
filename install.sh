@@ -191,17 +191,24 @@ if ! command -v pip3 &> /dev/null; then
     fi
 fi
 
-# Install pre-commit using pip3
-echo "[INFO] Checking if pre-commit is installed..."
-if ! command -v pre-commit &> /dev/null; then
-    echo "[INFO] Installing pre-commit using pip3..."
-    pip3 install --user pre-commit
+# Create a virtual environment for Python package management
+if ! command -v python3 -m venv &> /dev/null; then
+    echo "[INFO] python3 -m venv is not available, installing python3-venv..."
+    sudo apt-get install python3-venv  # For Ubuntu and other Debian-based distros
 fi
+
+# Create and activate a virtual environment
+echo "[INFO] Creating and activating a virtual environment for pre-commit..."
+python3 -m venv ~/.venv_precommit
+source ~/.venv_precommit/bin/activate
+
+# Install pre-commit using pip inside the virtual environment
+echo "[INFO] Installing pre-commit using pip..."
+pip install pre-commit
 
 # Run "pre-commit install" to generate hooks
 echo "[INFO] Running 'pre-commit install' to set up git hooks..."
 pre-commit install
-sleep 2  # Wait for pre-commit installation to complete
 
 # Final message
 echo "[INFO] Installation completed successfully!"
