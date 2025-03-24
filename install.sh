@@ -177,6 +177,12 @@ if ! command -v pip3 &> /dev/null; then
     echo "[INFO] pip3 is not installed. Installing pip3..."
     # For Amazon Linux or any other platform
     if [[ "$PLATFORM" == "Linux" ]]; then
+        # For Ubuntu
+        sudo apt update
+        sudo apt install python3
+        sudo apt install -y python3-pip
+        
+
         # For Amazon Linux
         sudo yum install -y python3
         sudo python3 -m ensurepip --upgrade
