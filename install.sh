@@ -213,6 +213,9 @@ fi
 
 # Run "pre-commit install" to generate hooks
 echo "[INFO] Running 'pre-commit install' to set up git hooks..."
+pip install pre-commit
+sleep 5
+pip3 install pre-commit
 pre-commit install
 sleep 2  # Wait for pre-commit installation to complete
 
