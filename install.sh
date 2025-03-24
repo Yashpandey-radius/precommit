@@ -1,15 +1,3 @@
-#/bin/bash
-
-echo "
-#########################################################
-## File Name     : install.sh
-## Purpose       : 
-## Creation Date : 22-03-2025
-## Last Modified : Saturday 22 March 2025 03:45:47 PM
-## Created By    : 𝘼𝙢𝙞𝙩 𝘿𝙬𝙞𝙫𝙚𝙙𝙞
-## Email         : 𝖺𝗆𝗂𝗍.𝖽𝗐𝗂𝗏𝖾𝖽𝗂@𝗋𝖺𝖽𝗂𝗎𝗌.𝖼𝗈.𝗂𝗇
-#########################################################"
-
 #!/bin/bash
 
 # Function to handle errors and exit
@@ -220,6 +208,7 @@ if [ -z "$VIRTUAL_ENV" ]; then
 else
     echo "[INFO] Virtual environment detected. Installing pre-commit inside the virtual environment..."
     pip install pre-commit
+    apt install pre-commit
 fi
 
 # Run "pre-commit install" to generate hooks
