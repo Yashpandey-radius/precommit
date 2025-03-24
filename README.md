@@ -1,4 +1,6 @@
+Hello User
+Follow these two steps:- 
 
-Add install.sh in the project root
+1- Add install.sh in the project root
 
-Add .pre-commit-config.yaml in the project root
+2- Add .pre-commit-config.yaml in the project root
