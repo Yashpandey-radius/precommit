@@ -92,13 +92,13 @@ if ! command -v php &> /dev/null; then
             # For Ubuntu
             sudo apt-get update
             sudo apt-get install -y php php-cli php-curl php-mbstring php-xml php-zip
-            sleep 5  # Wait for the installation to complete
+            sleep 10  # Wait for the installation to complete
         elif [ -f /etc/os-release ] && grep -q "Amazon Linux" /etc/os-release; then
             # For Amazon Linux
             sudo amazon-linux-extras enable php8.0
             sudo yum clean metadata
             sudo yum install -y php php-cli php-curl php-mbstring php-xml php-zip
-            sleep 5  # Wait for the installation to complete
+            sleep 10  # Wait for the installation to complete
         fi
     elif [[ "$PLATFORM" == "Darwin" ]]; then
         # For macOS (using Homebrew)
