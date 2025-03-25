@@ -339,3 +339,239 @@ Local PHP Security Checker Alternative (**RIPS Code Analysis**).................
 
 
 
+
+
+
+
+repos:
+  - repo: local
+    hooks:
+      # PHPStan (Static Analysis)
+      - id: phpstan
+        name: PHPStan (Static Analysis)
+        entry: >
+          sh -c '
+            if [ -f "C:/php/php.exe" ]; then
+                C:/php/php.exe ./php_tools/phpstan.phar analyse --level=5 --memory-limit=4G --error-format=raw .
+            elif [ -f "C:/xampp/php/php.exe" ]; then
+                C:/xampp/php/php.exe ./php_tools/phpstan.phar analyse --level=5 --memory-limit=4G --error-format=raw .
+             elif command -v php >/dev/null 2>&1; then
+                php ./php_tools/phpstan.phar analyse --level=5 --memory-limit=4G --error-format=raw .
+            else
+                echo "[ERROR] PHP not found! Please install PHP."
+                exit 1
+            fi
+          '
+        language: system
+        files: \.php$
+        args: ["--memory-limit=4G", "."]  # Added '.' to specify the current directory
+
+      - id: phpstan-alt
+        name: PHPStan Alternative (PHPStan's alternative - **Psalm**)
+        entry: |
+          sh -c '
+            # Check if psalm.xml exists
+            if [ ! -f "./psalm.xml" ]; then
+              echo "Error: psalm.xml not found. Exiting..."
+              exit 1
+            fi
+            if [ -f "C:/php/php.exe" ]; then
+                C:/php/php.exe ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true .
+            elif [ -f "C:/xampp/php/php.exe" ]; then
+                C:/xampp/php/php.exe ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true .
+             elif command -v php >/dev/null 2>&1; then
+                php ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true .
+            else
+                echo "[ERROR] PHP not found! Please install PHP."
+                exit 1
+            fi
+          '
+        language: system
+        types: [file]
+        args: ["--error-level=medium", "."]  # Added '.' to specify the current directory
+
+      # PHPUnit (Unit Testing)
+      - id: phpunit
+        name: Run PHPUnit
+        entry: |
+          sh -c '
+            retries=3
+            count=0
+            until php ./php_tools/phpunit.phar --filter TestClassName || [ $count -ge $retries ]; do
+              echo "PHPUnit failed. Retrying... ($((count+1))/$retries)"
+              count=$((count+1))
+              sleep 2
+            done
+          '
+        language: system
+        types: [file]
+        args: ["--filter", "TestClassName"]
+
+      - id: phpunit-alt
+        name: Run PHPUnit Alternative (**Behat** for Behavioral Testing)
+        entry: |
+          sh -c '
+            retries=3
+            count=0
+            until php ./php_tools/behat.phar || [ $count -ge $retries ]; do
+              echo "Behat failed. Retrying... ($((count+1))/$retries)"
+              count=$((count+1))
+              sleep 2
+            done
+          '
+        language: system
+        types: [file]
+        args: ["--tags", "not @wip", "."]
+
+      # PHP_CodeSniffer (Coding Standards)
+      - id: phpcs
+        name: PHP CodeSniffer (PSR-12 Standard)
+        entry: >
+          sh -c '
+            if [ -f "C:/php/php.exe" ]; then
+                C:/php/php.exe ./php_tools/phpcs.phar --standard=PSR12 --ignore=vendor/* .
+            elif [ -f "C:/xampp/php/php.exe" ]; then
+                C:/xampp/php/php.exe ./php_tools/phpcs.phar --standard=PSR12 --ignore=vendor/* .
+             elif command -v php >/dev/null 2>&1; then
+                php ./php_tools/phpcs.phar --standard=PSR12 --ignore=vendor/* .
+            else
+                echo "[ERROR] PHP not found! Please install PHP."
+                exit 1
+            fi
+          '
+        language: system
+        types: [file]
+        args: ["--ignore=vendor/*", "."]  # Added '.' to specify the current directory
+
+      - id: phpcs-alt
+        name: PHP CodeSniffer Alternative (PHP_CodeSniffer with custom standard)
+        entry: >
+          sh -c '
+            if [ -f "C:/php/php.exe" ]; then
+                C:/php/php.exe ./php_tools/phpcs.phar --standard=PSR12 --ignore=vendor/* .
+            elif [ -f "C:/xampp/php/php.exe" ]; then
+                C:/xampp/php/php.exe ./php_tools/phpcs.phar --standard=PSR12 --ignore=vendor/* .
+             elif command -v php >/dev/null 2>&1; then
+                php ./php_tools/phpcs.phar --standard=PSR12 --ignore=vendor/* .
+            else
+                echo "[ERROR] PHP not found! Please install PHP."
+                exit 1
+            fi
+          '
+        language: system
+        types: [file]
+        args: ["--ignore=vendor/*", "."]  # Added '.' to specify the current directory
+
+      # PHP-CS-Fixer
+      - id: php-cs-fixer
+        name: PHP-CS-Fixer
+        entry: >
+          sh -c '
+            if [ -f "C:/php/php.exe" ]; then
+                C:/php/php.exe ./php_tools/phpcbf.phar --standard=PSR12 --ignore=vendor/* .
+            elif [ -f "C:/xampp/php/php.exe" ]; then
+                C:/xampp/php/php.exe ./php_tools/phpcbf.phar --standard=PSR12 --ignore=vendor/* .
+             elif command -v php >/dev/null 2>&1; then
+                php ./php_tools/phpcbf.phar --standard=PSR12 --ignore=vendor/* .
+            else
+                echo "[ERROR] PHP not found! Please install PHP."
+                exit 1
+            fi
+          '
+        language: system
+        types: [file]
+        args: ["--ignore=vendor/*", "."]  # Added '.' to specify the current directory
+
+      - id: php-cs-fixer-alt
+        name: PHP-CS-Fixer Alternative (**PHPCBF** - Code Beautifier and Fixer)
+        entry: >
+          sh -c '
+            if [ -f "C:/php/php.exe" ]; then
+                C:/php/php.exe ./php_tools/phpcbf.phar --standard=PSR12 --ignore=vendor/* .
+            elif [ -f "C:/xampp/php/php.exe" ]; then
+                C:/xampp/php/php.exe ./php_tools/phpcbf.phar --standard=PSR12 --ignore=vendor/* .
+             elif command -v php >/dev/null 2>&1; then
+                php ./php_tools/phpcbf.phar --standard=PSR12 --ignore=vendor/* .
+            else
+                echo "[ERROR] PHP not found! Please install PHP."
+                exit 1
+            fi
+          '
+        language: system
+        types: [file]
+        args: ["--ignore=vendor/*", "."]  # Added '.' to specify the current directory
+
+      # Psalm (Static Analysis)
+      - id: psalm
+        name: Psalm (Static Analysis)
+        entry: |
+          sh -c '
+            # Check if psalm.xml exists
+            if [ ! -f "./psalm.xml" ]; then
+              echo "Error: psalm.xml not found. Exiting..."
+              exit 1
+            fi
+            if [ -f "C:/php/php.exe" ]; then
+                C:/php/php.exe ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true .
+            elif [ -f "C:/xampp/php/php.exe" ]; then
+                C:/xampp/php/php.exe ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true .
+             elif command -v php >/dev/null 2>&1; then
+                php ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true .
+            else
+                echo "[ERROR] PHP not found! Please install PHP."
+                exit 1
+            fi
+          '
+        language: system
+        types: [file]
+        args: ["--error-level=medium", "."]  # Added '.' to specify the current directory
+
+      - id: psalm-alt
+        name: Psalm Alternative (Static Analysis - **PHPStan**)
+        entry: >
+          sh -c '
+            if [ -f "C:/php/php.exe" ]; then
+                C:/php/php.exe ./php_tools/phpstan.phar analyse --level=5 --memory-limit=2G .
+            elif [ -f "C:/xampp/php/php.exe" ]; then
+                C:/xampp/php/php.exe ./php_tools/phpstan.phar analyse --level=5 --memory-limit=2G .
+             elif command -v php >/dev/null 2>&1; then
+                php ./php_tools/phpstan.phar analyse --level=5 --memory-limit=2G .
+            else
+                echo "[ERROR] PHP not found! Please install PHP."
+                exit 1
+            fi
+          '
+        language: system
+        types: [file]
+        args: ["--memory-limit=2G", "."]  # Added '.' to specify the current directory
+
+      # Local PHP Security Checker
+      - id: local-php-security-checker
+        name: Local PHP Security Checker
+        entry: >
+          sh -c '
+            if [ -f "C:/php/php.exe" ]; then
+                C:/php/php.exe ./php_tools/local-php-security-checker.phar .
+            elif [ -f "C:/xampp/php/php.exe" ]; then
+                C:/xampp/php/php.exe ./php_tools/local-php-security-checker.phar .
+             elif command -v php >/dev/null 2>&1; then
+                php ./php_tools/local-php-security-checker.phar .
+            else
+                echo "[ERROR] PHP not found! Please install PHP."
+                exit 1
+            fi
+          '
+        language: system
+        types: [file]
+        args: ["."]
+
+
+
+
+
+
+
+
+
+
+
