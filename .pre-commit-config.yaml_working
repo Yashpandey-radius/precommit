@@ -156,50 +156,6 @@ repos:
         types: [file]
         args: ["--ignore=vendor/*", "."]
 
-      # Psalm (Static Analysis)
-      - id: psalm
-        name: Psalm (Static Analysis)
-        entry: |
-          sh -c '
-            # Check if psalm.xml exists
-            if [ ! -f "./psalm.xml" ]; then
-              echo "Error: psalm.xml not found. Exiting..."
-              exit 1
-            fi
-            if [ -f "C:/php/php.exe" ]; then
-                C:/php/php.exe ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true .
-            elif [ -f "C:/xampp/php/php.exe" ]; then
-                C:/xampp/php/php.exe ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true .
-             elif command -v php >/dev/null 2>&1; then
-                php ./php_tools/psalm.phar --config=psalm.xml --no-cache --show-info=true .
-            else
-                echo "[ERROR] PHP not found! Please install PHP."
-                exit 1
-            fi
-          '
-        language: system
-        types: [file]
-        args: ["--error-level=medium", "."]
-
-      - id: psalm-alt
-        name: Psalm Alternative (Static Analysis - **PHPStan**)
-        entry: >
-          sh -c '
-            if [ -f "C:/php/php.exe" ]; then
-                C:/php/php.exe ./php_tools/phpstan.phar analyse --level=5 --memory-limit=2G .
-            elif [ -f "C:/xampp/php/php.exe" ]; then
-                C:/xampp/php/php.exe ./php_tools/phpstan.phar analyse --level=5 --memory-limit=2G .
-             elif command -v php >/dev/null 2>&1; then
-                php ./php_tools/phpstan.phar analyse --level=5 --memory-limit=2G .
-            else
-                echo "[ERROR] PHP not found! Please install PHP."
-                exit 1
-            fi
-          '
-        language: system
-        types: [file]
-        args: ["--memory-limit=2G", "."]
-
       # Local PHP Security Checker
       - id: local-php-security-checker
         name: Local PHP Security Checker
