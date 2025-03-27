@@ -72,7 +72,7 @@ PLATFORM=$(uname -s)
 if [[ "$PLATFORM" == "Linux" || "$PLATFORM" == "Darwin" ]]; then
     echo "[INFO] Detected platform: $PLATFORM (Linux or macOS)"
 elif [[ "$PLATFORM" == "MINGW64_NT"* ]]; then
-    echo "[INFO] Detected platform: Windows (MSYS/MinGW)"
+    echo "[INFO] Detected platform: Windows (MSYS/MinGw)"
 else
     handle_error "[ERROR] Unsupported platform: $PLATFORM"
 fi
@@ -108,34 +108,65 @@ if ! command -v php &> /dev/null; then
         brew install php
         sleep 5  # Wait for the installation to complete
     elif [[ "$PLATFORM" == "MINGW64_NT"* ]]; then
-        # For Windows (using MSYS/MinGW)
-        echo "[INFO] Please install PHP manually from https://windows.php.net/download/"
-        handle_error "[ERROR] PHP installation on Windows is not automated. Please install PHP manually."
+        # For Windows (using MSYS/MinGw)
+        # Check if PHP is installed at C:\php or C:\xampp\php
+        if [ -f "C:/php/php.exe" ]; then
+            echo "[INFO] PHP found at C:/php/php.exe"
+            export PHP_PATH="C:/php/php.exe"
+    
+        elif [ -f "C:/xampp/php/php.exe" ]; then
+            echo "[INFO] PHP found at C:/xampp/php/php.exe"
+            export PHP_PATH="C:/xampp/php/php.exe"
+        
+        else
+            echo "[INFO] PHP is not installed. Installing PHP manually..."
+            echo "[INFO] Please install PHP manually from https://windows.php.net/download/"
+            handle_error "[ERROR] PHP installation on Windows is not automated. Please install PHP manually."
+        fi
     fi
 else
-    PHP_VERSION=$(php -v | head -n 1 | awk '{print $2}')
-    PHP_MAJOR_VERSION=$(echo "$PHP_VERSION" | cut -d'.' -f1)
-    PHP_MINOR_VERSION=$(echo "$PHP_VERSION" | cut -d'.' -f2)
-    PHP_PATCH_VERSION=$(echo "$PHP_VERSION" | cut -d'.' -f3)
-    echo "[INFO] PHP is already installed. Version: $PHP_VERSION"
+    # Explicitly set the PHP path if not done yet
+    if [[ -z "$PHP_PATH" ]]; then
+        echo "[INFO] PHP is already installed. But PHP_PATH is not set. Trying to find PHP path..."
+        if [[ "$PLATFORM" == "MINGW64_NT"* ]]; then
+            export PHP_PATH=$(which php)
+        else
+            PHP_PATH="php"
+        fi
+    fi
+    # Make sure PHP is executable and the path is correct
+    if [ ! -x "$PHP_PATH" ]; then
+        handle_error "[ERROR] PHP is installed, but the executable is not found at $PHP_PATH."
+    fi
+
+    # Extract PHP version
+    echo "[INFO] Checking PHP version..."
+    PHP_VERSION=$("$PHP_PATH" -v 2>&1 | head -n 1 | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+
+    # Debugging step: print PHP version output
+    echo "[DEBUG] PHP version output: $PHP_VERSION"
+
+    if [[ -z "$PHP_VERSION" ]]; then
+        handle_error "[ERROR] Failed to detect PHP version. Please ensure PHP is installed and try again."
+    fi
+    
+    export PHP_VERSION
+    echo "[INFO] PHP is installed. Version: $PHP_VERSION"
+    echo "[INFO] PHP executable path: $PHP_PATH"
 fi
+
+# Extract PHP major version
+PHP_MAJOR_VERSION=$(echo $PHP_VERSION | cut -d. -f1)
+
+# Debugging step: print PHP major version
+echo "[DEBUG] PHP major version: $PHP_MAJOR_VERSION"
 
 # Check PHP version compatibility with PHP-CS-Fixer (supports PHP >= 7)
-if [ "$PHP_MAJOR_VERSION" -ge 7 ]; then
+if [ "$PHP_MAJOR_VERSION" -lt 7 ]; then
+    handle_error "[ERROR] PHP version lower than 7 detected. Please update PHP to at least version 7."
+else
     echo "[INFO] PHP version >= 7 detected. PHP-CS-Fixer will be installed."
     export PHP_CS_FIXER_IGNORE_ENV=1
-else
-    handle_error "[ERROR] PHP version lower than 7 detected. Please update PHP to at least version 7."
-fi
-
-# Check if PHP curl extension is installed
-if ! php -m | grep -q 'curl'; then
-    echo "[ERROR] Required PHP extension 'curl' is not installed."
-    echo "[INFO] Please install the 'curl' PHP extension. If you're using Windows, follow the steps:"
-    echo "[INFO] 1. Open your php.ini file (typically located in your PHP installation folder)."
-    echo "[INFO] 2. Uncomment the line that says 'extension=curl' (remove the semicolon at the beginning)."
-    echo "[INFO] 3. Restart your web server or PHP process."
-    handle_error "[ERROR] PHP curl extension is required."
 fi
 
 # Create a directory for PHP tools
@@ -157,9 +188,9 @@ sleep 2  # Wait for the download completion
 download_tool "Behat" "https://github.com/Behat/Behat/releases/download/v3.10.0/behat.phar" "behat.phar" "https://github.com/Behat/Behat/releases/download/v3.10.0/behat.exe"
 sleep 2  # Wait for the download completion
 download_tool "PHP Code Beautifier and Fixer (phpcbf)" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcbf.phar" "phpcbf.phar" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcbf.exe"
-sleep 2  # Wait for the download completion
+sleep 10  # Wait for the download completion
 download_tool "RIPS Code Analysis" "https://github.com/ripstech/rips/releases/download/v1.0.0/rips.phar" "rips.phar" "https://github.com/ripstech/rips/releases/download/v1.0.0/rips.exe"
-sleep 2  # Wait for the download completion
+sleep 10  # Wait for the download completion
 
 # Handling PHP-CS-Fixer for PHP >= 8.1 compatibility
 if [ "$PHP_MAJOR_VERSION" -ge 8 ]; then
