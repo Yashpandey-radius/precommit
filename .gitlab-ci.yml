@@ -1,0 +1,59 @@
+variables:
+  GIT_DEPTH: 0
+  GIT_STRATEGY: fetch
+  GIT_FETCH_EXTRA_FLAGS: "--prune"
+  GET_SOURCES_POLICY: clean
+  
+
+stages:
+  - test-runner
+  - prepare
+  - test
+  - build
+  - deploy
+
+test-runner:
+  stage: test-runner 
+  script:
+    - echo "Runner is working!"
+
+
+prepare:
+  stage: prepare
+  before_script:
+    - apt-get update && apt-get install -y git
+  script:
+    - echo "Setting up properly and Preparing environment"
+    - git fetch --all --verbose
+    - pwd
+    - whoami
+  only:
+    - master
+
+test:
+  stage: test
+  script:
+    - echo "Testing Application Code Changes"
+    - php -v
+    - git --version
+  only:
+    - master
+
+build:
+  stage: build
+  script:
+    - echo "Adding Changes"
+  only:
+    - master
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying the Updated application"
+    - git config --global --add safe.directory /var/www/torrentpower_version_update
+    - cd /var/www/torrentpower_version_update
+    - git remote set-url origin git@3.7.51.242:yash.pandey/torrentpower_version_update.git
+    - git fetch origin master
+    - git reset --hard origin/master
+  only:
+    - master
