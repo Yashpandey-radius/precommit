@@ -179,7 +179,7 @@ download_tool "PHPStan" "https://github.com/phpstan/phpstan/releases/download/1.
 sleep 2  # Wait for the download completion
 download_tool "PHP_CodeSniffer" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcs.phar" "phpcs.phar" "https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.7.2/phpcs.exe"
 sleep 2  # Wait for the download completion
-download_tool "Psalm" "https://github.com/vimeo/psalm/releases/download/v4.15.0/psalm.phar" "psalm.phar" "https://github.com/vimeo/psalm/releases/download/v4.15.0/psalm.exe"
+download_tool "Psalm" "https://github.com/vimeo/psalm/releases/download/6.10.3/psalm.phar" "psalm.phar" "https://github.com/vimeo/psalm/releases/download/v4.15.0/psalm.exe"
 sleep 2  # Wait for the download completion
 download_tool "PHPUnit" "https://phar.phpunit.de/phpunit.phar" "phpunit.phar" "https://phar.phpunit.de/phpunit.exe"
 sleep 2  # Wait for the download completion
