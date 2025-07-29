@@ -69,13 +69,21 @@ download_tool() {
 # Detect platform and set path
 PLATFORM=$(uname -s)
 
-if [[ "$PLATFORM" == "Linux" || "$PLATFORM" == "Darwin" ]]; then
-    echo "[INFO] Detected platform: $PLATFORM (Linux or macOS)"
-elif [[ "$PLATFORM" == "MINGW64_NT"* ]]; then
-    echo "[INFO] Detected platform: Windows (MSYS/MinGw)"
-else
-    handle_error "[ERROR] Unsupported platform: $PLATFORM"
-fi
+case "$PLATFORM" in
+    Linux*)
+        echo "[INFO] Detected platform: Linux"
+        ;;
+    Darwin*)
+        echo "[INFO] Detected platform: macOS"
+        ;;
+    MINGW64_NT*|MSYS_NT*)
+        echo "[INFO] Detected platform: Windows (Git Bash/MSYS)"
+        ;;
+    *)
+        handle_error "[ERROR] Unsupported platform: $PLATFORM"
+        ;;
+esac
+
 
 # Ensure curl is installed
 if ! command -v curl &> /dev/null; then
@@ -125,15 +133,28 @@ if ! command -v php &> /dev/null; then
         fi
     fi
 else
-    # Explicitly set the PHP path if not done yet
     if [[ -z "$PHP_PATH" ]]; then
-        echo "[INFO] PHP is already installed. But PHP_PATH is not set. Trying to find PHP path..."
-        if [[ "$PLATFORM" == "MINGW64_NT"* ]]; then
-            export PHP_PATH=$(which php)
+    echo "[INFO] PHP_PATH is not set. Trying to detect PHP path..."
+    if [[ "$PLATFORM" == "MINGW64_NT"* || "$PLATFORM" == "MSYS_NT"* ]]; then
+        if [ -f "C:/php/php.exe" ]; then
+            PHP_PATH="C:/php/php.exe"
+        elif [ -f "C:/xampp/php/php.exe" ]; then
+            PHP_PATH="C:/xampp/php/php.exe"
         else
-            PHP_PATH="php"
+            handle_error "[ERROR] PHP not found in C:/php or C:/xampp/php. Please install it manually from https://windows.php.net/download/"
+        fi
+    else
+        PHP_PATH=$(command -v php)
+        if [[ -z "$PHP_PATH" ]]; then
+            handle_error "[ERROR] PHP not found. Please install PHP."
         fi
     fi
+fi
+
+if [ ! -x "$PHP_PATH" ]; then
+    handle_error "[ERROR] PHP executable is not accessible at: $PHP_PATH"
+fi
+
     # Make sure PHP is executable and the path is correct
     if [ ! -x "$PHP_PATH" ]; then
         handle_error "[ERROR] PHP is installed, but the executable is not found at $PHP_PATH."
